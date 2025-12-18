@@ -1,67 +1,53 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kalkulator Palet</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator palet</title>
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#007aff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Palety">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
 
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      padding: 20px;
-      background: #f7f7f7;
-    }
-    h2 { margin-bottom: 20px; }
-    label {
-      display: block;
-      margin-bottom: 12px;
-      font-size: 16px;
-    }
-    input {
-      width: 100%;
-      padding: 8px;
-      font-size: 16px;
-      margin-top: 5px;
-    }
-    button {
-      margin-top: 15px;
-      padding: 12px;
-      width: 100%;
-      font-size: 18px;
-      background: #007aff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-    }
-    #wynik {
-      margin-top: 20px;
-      background: white;
-      padding: 15px;
-      border-radius: 6px;
-      font-size: 17px;
-    }
-    hr { margin: 15px 0; }
-    ul, ol { margin-left: 20px; }
-  </style>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background: #f5f5f5;
+}
+h1 { margin-bottom: 20px; }
+input {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  background: #0a74ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+#wynik {
+  background: white;
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 8px;
+}
+ol { margin-top: 10px; }
+</style>
 </head>
+
 <body>
 
-<h2>Kalkulator załadunku W + EP</h2>
+<h1>Kalkulator załadunku W + EP</h1>
 
-<label>Palety W:
-  <input type="number" id="w" value="0" min="0">
-</label>
+<label>Palety W:</label>
+<input id="w" type="number" value="0">
 
-<label>Palety EP:
-  <input type="number" id="ep" value="0" min="0">
-</label>
+<label>Palety EP:</label>
+<input id="ep" type="number" value="0">
 
 <button onclick="oblicz()">Oblicz</button>
 
@@ -69,108 +55,76 @@
 
 <script>
 function oblicz() {
+
   const DLUGOSC = 13.4;
+  const dlW = 0.95;
+  const dlEP3 = 1.2;
+  const dlEP2 = 0.8;
 
-  // długości rzędów
-  const dW = 0.95;   // rząd W (2 palety)
-  const dEP3 = 1.2;  // EP po 3
-  const dEP2 = 0.8;  // EP po 2 (po szerokości)
-
-  let w = Number(document.getElementById("w").value || 0);
-  let ep = Number(document.getElementById("ep").value || 0);
+  let w = +document.getElementById("w").value;
+  let ep = +document.getElementById("ep").value;
 
   let zajete = 0;
   let instrukcja = [];
-  let lp = 1;
 
-  // ===== W =====
+  // --- PALETY W ---
   const pelneW = Math.floor(w / 2);
   const resztaW = w % 2;
-  const rzedyW = pelneW + (resztaW ? 1 : 0);
 
-  if (rzedyW > 0) {
-    instrukcja.push(
-      `${lp++}. Załaduj ${rzedyW} rzędów palet W (2 palety w rzędzie)`
-    );
+  if (pelneW > 0) {
+    instrukcja.push(`Załaduj ${pelneW} rzędy palet W (2 palety w rzędzie)`);
+    zajete += pelneW * dlW;
   }
 
-  zajete += rzedyW * dW;
-
-  // ===== dopychanie EP do niepełnego W =====
-  let epDopych = 0;
-  if (resztaW && ep > 0) {
+  // --- DOPYCHANIE EP DO W ---
+  if (resztaW === 1 && ep > 0) {
+    instrukcja.push(`Dopychaj 1 paletę EP do rzędu W`);
+    zajete += dlW;
     ep--;
-    epDopych = 1;
-    instrukcja.push(
-      `${lp++}. Dopychaj 1 paletę EP do niepełnego rzędu W`
-    );
   }
 
-  // ===== EP =====
-  let rzedyEP3 = Math.floor(ep / 3);
+  // --- EP PO 3 ---
+  let rzedowEP3 = Math.floor(ep / 3);
   let resztaEP = ep % 3;
-  let ep2 = 0;
 
-  // logika: zawsze pełny rząd
-  if (resztaEP === 1 && rzedyEP3 > 0) {
-    rzedyEP3--;
-    ep2 = 2;
-  } else if (resztaEP >= 2) {
-    ep2 = 2;
+  if (rzedowEP3 > 0) {
+    instrukcja.push(`Załaduj ${rzedowEP3} rzędy EP po 3 palety (1,2 m)`);
+    zajete += rzedowEP3 * dlEP3;
   }
 
-  if (rzedyEP3 > 0) {
-    instrukcja.push(
-      `${lp++}. Załaduj ${rzedyEP3} rzędów EP po 3 palety (1,2 m)`
-    );
+  // --- EP PO 2 ---
+  if (resztaEP > 0) {
+    instrukcja.push(`Załaduj 2 palety EP po szerokości (0,8 m)`);
+    zajete += dlEP2;
   }
 
-  if (ep2 > 0) {
-    instrukcja.push(
-      `${lp++}. Załaduj 2 palety EP w rzędzie po szerokości (0,8 m)`
-    );
-  }
+  // --- PODSUMOWANIE ---
+  const wolne = +(DLUGOSC - zajete).toFixed(2);
 
-  zajete += rzedyEP3 * dEP3;
-  if (ep2) zajete += dEP2;
+  let moznaEP = wolne > 0 ? Math.floor(wolne / dlEP3) * 3 : 0;
+  let moznaW = wolne > 0 ? Math.floor(wolne / dlW) * 2 : 0;
 
-  const wolne = DLUGOSC - zajete;
-
-  // ===== WYNIK =====
-  let wynik = `
-    <strong>Zajęta długość:</strong> ${zajete.toFixed(2)} m<br>
+  let html = `
+    <b>Zajęta długość:</b> ${zajete.toFixed(2)} m<br>
+    <b>Wolne miejsce:</b> ${wolne > 0 ? wolne : 0} m<br><br>
   `;
 
-  if (wolne >= 0) {
-    wynik += `<strong>Wolne miejsce:</strong> ${wolne.toFixed(2)} m<br>`;
-
-    // ile jeszcze można dołożyć
-    let moznaEP = Math.floor(wolne / dEP3) * 3;
-    let reszta = wolne % dEP3;
-
-    let moznaEP2 = reszta >= dEP2 ? 2 : 0;
-    let moznaW = Math.floor(wolne / dW) * 2;
-
-    wynik += `<strong>Można jeszcze załadować:</strong><br>`;
-    if (moznaEP > 0)
-      wynik += `• ${moznaEP} palet EP (trójkami)<br>`;
-    if (moznaEP2 > 0)
-      wynik += `• ${moznaEP2} palety EP (dwójką)<br>`;
-    if (moznaW > 0)
-      wynik += `• ${moznaW} palet W<br>`;
+  if (wolne > 0) {
+    html += `<b>Można jeszcze załadować:</b><ul>`;
+    if (moznaEP > 0) html += `<li>${moznaEP} palet EP (trójkami)</li>`;
+    if (moznaW > 0) html += `<li>${moznaW} palet W (dwójkami)</li>`;
+    html += `</ul>`;
   } else {
-    wynik += `
-      <strong style="color:red">Za dużo palet!</strong><br>
-      Brakuje ${Math.abs(wolne).toFixed(2)} m
-    `;
+    html += `<b>❌ Za dużo palet – usuń część ładunku</b>`;
   }
 
-  if (instrukcja.length > 0) {
-    wynik += `<hr><strong>Instrukcja załadunku (krok po kroku):</strong><ol>`;
-    instrukcja.forEach(k => wynik += `<li>${k}</li>`);
-    wynik += `</ol>`;
-  }
+  html += `<hr><b>Instrukcja załadunku:</b><ol>`;
+  instrukcja.forEach(i => html += `<li>${i}</li>`);
+  html += `</ol>`;
 
-  document.getElementById("wynik").innerHTML = wynik;
+  document.getElementById("wynik").innerHTML = html;
 }
 </script>
+
+</body>
+</html>
