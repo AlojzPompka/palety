@@ -70,60 +70,56 @@
 <script>
 function oblicz() {
   const DLUGOSC = 13.4;
-  const dlW = 0.95, dlEP3 = 1.2, dlEP2 = 0.8;
+  const d1W = 0.95;
+  const d1EP3 = 1.2;
+  const d1EP2 = 0.8;
 
-  let w = +document.getElementById("w").value;
-  let ep = +document.getElementById("ep").value;
+  const w = Number(document.getElementById("w").value || 0);
+  let ep = Number(document.getElementById("ep").value || 0);
+
   let zajete = 0;
 
+  // Rzędy W (2 palety w rzędzie)
   const pelneW = Math.floor(w / 2);
   const resztaW = w % 2;
   const rzedyW = pelneW + (resztaW ? 1 : 0);
-  zajete += rzedyW * dlW;
+  zajete += rzedyW * d1W;
 
+  // Dopychanie EP do niepełnego W
   let epDopych = 0;
-  if (resztaW && ep > 0) { ep--; epDopych = 1; }
+  if (resztaW && ep > 0) {
+    ep--;
+    epDopych = 1;
+  }
 
+  // EP po 3
   let rzedyEP3 = Math.floor(ep / 3);
   let resztaEP = ep % 3;
   let ep2 = 0;
 
   if (resztaEP === 1 && rzedyEP3 > 0) {
-    rzedyEP3–; ep2 = 2;
+    rzedyEP3--;
+    ep2 = 2;
   } else if (resztaEP >= 2) {
     ep2 = 2;
   }
 
-  zajete += rzedyEP3 * dlEP3;
-  if (ep2) zajete += dlEP2;
+  zajete += rzedyEP3 * d1EP3;
+  if (ep2) zajete += d1EP2;
 
   const wolne = DLUGOSC - zajete;
-  let out = `<strong>Zajęta długość:</strong> ${zajete.toFixed(2)} m<br>`;
+
+  let wynik = `
+    <strong>Zajęta długość:</strong> ${zajete.toFixed(2)} m<br>
+  `;
 
   if (wolne >= 0) {
-    out += `<strong>Wolne miejsce:</strong> ${wolne.toFixed(2)} m<br>`;
-    let add3 = Math.floor(wolne / dlEP3);
-    let rest = wolne - add3 * dlEP3;
-    let add2 = rest >= dlEP2 ? 1 : 0;
-
-    out += `<strong>Można jeszcze załadować:</strong><ul>`;
-    if (add3 || add2)
-      out += `<li>${add3*3 + add2*2} palet EP → ${add3 ? add3+"×3" : ""}${add2 ? " + 1×2" : ""}</li>`;
-    let addW = Math.floor(wolne / dlW);
-    if (addW) out += `<li>${addW*2} palet W → ${addW} pełne rzędy</li>`;
-    out += `</ul>`;
+    wynik += `<strong>Wolne miejsce:</strong> ${wolne.toFixed(2)} m`;
   } else {
-    out += `<strong style="color:red">Za dużo palet!</strong>`;
+    wynik += `<strong style="color:red">Za dużo palet!</strong><br>
+              Brakuje ${Math.abs(wolne).toFixed(2)} m`;
   }
 
-  document.getElementById("wynik").innerHTML = out;
-}
-
-// service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  document.getElementById("wynik").innerHTML = wynik;
 }
 </script>
-
-</body>
-</html>
