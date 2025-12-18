@@ -70,33 +70,48 @@
 <script>
 function oblicz() {
   const DLUGOSC = 13.4;
-  const d1W = 0.95;
-  const d1EP3 = 1.2;
-  const d1EP2 = 0.8;
 
-  const w = Number(document.getElementById("w").value || 0);
+  // długości rzędów
+  const dW = 0.95;   // rząd W (2 palety)
+  const dEP3 = 1.2;  // EP po 3
+  const dEP2 = 0.8;  // EP po 2 (po szerokości)
+
+  let w = Number(document.getElementById("w").value || 0);
   let ep = Number(document.getElementById("ep").value || 0);
 
   let zajete = 0;
+  let instrukcja = [];
+  let lp = 1;
 
-  // Rzędy W (2 palety w rzędzie)
+  // ===== W =====
   const pelneW = Math.floor(w / 2);
   const resztaW = w % 2;
   const rzedyW = pelneW + (resztaW ? 1 : 0);
-  zajete += rzedyW * d1W;
 
-  // Dopychanie EP do niepełnego W
+  if (rzedyW > 0) {
+    instrukcja.push(
+      `${lp++}. Załaduj ${rzedyW} rzędów palet W (2 palety w rzędzie)`
+    );
+  }
+
+  zajete += rzedyW * dW;
+
+  // ===== dopychanie EP do niepełnego W =====
   let epDopych = 0;
   if (resztaW && ep > 0) {
     ep--;
     epDopych = 1;
+    instrukcja.push(
+      `${lp++}. Dopychaj 1 paletę EP do niepełnego rzędu W`
+    );
   }
 
-  // EP po 3
+  // ===== EP =====
   let rzedyEP3 = Math.floor(ep / 3);
   let resztaEP = ep % 3;
   let ep2 = 0;
 
+  // logika: zawsze pełny rząd
   if (resztaEP === 1 && rzedyEP3 > 0) {
     rzedyEP3--;
     ep2 = 2;
@@ -104,20 +119,56 @@ function oblicz() {
     ep2 = 2;
   }
 
-  zajete += rzedyEP3 * d1EP3;
-  if (ep2) zajete += d1EP2;
+  if (rzedyEP3 > 0) {
+    instrukcja.push(
+      `${lp++}. Załaduj ${rzedyEP3} rzędów EP po 3 palety (1,2 m)`
+    );
+  }
+
+  if (ep2 > 0) {
+    instrukcja.push(
+      `${lp++}. Załaduj 2 palety EP w rzędzie po szerokości (0,8 m)`
+    );
+  }
+
+  zajete += rzedyEP3 * dEP3;
+  if (ep2) zajete += dEP2;
 
   const wolne = DLUGOSC - zajete;
 
+  // ===== WYNIK =====
   let wynik = `
     <strong>Zajęta długość:</strong> ${zajete.toFixed(2)} m<br>
   `;
 
   if (wolne >= 0) {
-    wynik += `<strong>Wolne miejsce:</strong> ${wolne.toFixed(2)} m`;
+    wynik += `<strong>Wolne miejsce:</strong> ${wolne.toFixed(2)} m<br>`;
+
+    // ile jeszcze można dołożyć
+    let moznaEP = Math.floor(wolne / dEP3) * 3;
+    let reszta = wolne % dEP3;
+
+    let moznaEP2 = reszta >= dEP2 ? 2 : 0;
+    let moznaW = Math.floor(wolne / dW) * 2;
+
+    wynik += `<strong>Można jeszcze załadować:</strong><br>`;
+    if (moznaEP > 0)
+      wynik += `• ${moznaEP} palet EP (trójkami)<br>`;
+    if (moznaEP2 > 0)
+      wynik += `• ${moznaEP2} palety EP (dwójką)<br>`;
+    if (moznaW > 0)
+      wynik += `• ${moznaW} palet W<br>`;
   } else {
-    wynik += `<strong style="color:red">Za dużo palet!</strong><br>
-              Brakuje ${Math.abs(wolne).toFixed(2)} m`;
+    wynik += `
+      <strong style="color:red">Za dużo palet!</strong><br>
+      Brakuje ${Math.abs(wolne).toFixed(2)} m
+    `;
+  }
+
+  if (instrukcja.length > 0) {
+    wynik += `<hr><strong>Instrukcja załadunku (krok po kroku):</strong><ol>`;
+    instrukcja.forEach(k => wynik += `<li>${k}</li>`);
+    wynik += `</ol>`;
   }
 
   document.getElementById("wynik").innerHTML = wynik;
