@@ -2,66 +2,77 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kalkulator palet W + EP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator załadunku W + EP</title>
 
 <style>
 body {
-  font-family: system-ui, sans-serif;
+  font-family: Arial, sans-serif;
   background:#f2f2f2;
+  margin:0;
   padding:20px;
 }
 
-h1 { text-align:center; }
+h1 {
+  text-align:center;
+}
 
-input, button {
+label {
+  font-weight:bold;
+}
+
+input {
   width:100%;
   padding:12px;
-  margin:8px 0;
+  margin:6px 0 16px;
   font-size:16px;
 }
 
 button {
-  background:#007aff;
+  width:100%;
+  padding:14px;
+  font-size:18px;
+  background:#1976f2;
   color:#fff;
   border:none;
   border-radius:8px;
 }
 
 #wynik {
+  margin-top:20px;
   background:#fff;
   padding:15px;
   border-radius:10px;
-  margin-top:15px;
 }
 
-.plan {
-  background:#1e1e1e;
+.naczepa {
+  margin-top:20px;
+  background:#222;
   padding:10px;
-  border-radius:10px;
-  margin-top:15px;
-  display:grid;
-  grid-template-columns:repeat(2, 1fr);
-  gap:6px;
+  border-radius:12px;
 }
 
-.palet {
-  height:40px;
-  border-radius:6px;
+.rzad {
+  display:flex;
+  gap:6px;
+  margin-bottom:6px;
+}
+
+.paleta {
+  height:34px;
+  flex:1;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-weight:700;
+  font-size:12px;
+  font-weight:bold;
   color:#fff;
-  font-size:14px;
+  border-radius:6px;
 }
 
-.w { background:#5fa8dc; }
-.ep3 { background:#57b26b; grid-column:span 2; }
-.ep2 { background:#e3a33f; }
-.empty { background:#555; }
-
-hr { margin:15px 0; }
+.W { background:#4aa3df; }
+.EP { background:#4caf50; }
+.empty { background:#555; color:#aaa; }
 </style>
 </head>
 
@@ -70,35 +81,39 @@ hr { margin:15px 0; }
 <h1>Kalkulator załadunku W + EP</h1>
 
 <label>Palety W:</label>
-<input id="w" type="number" value="0">
+<input id="w" type="number" min="0" value="0">
 
 <label>Palety EP:</label>
-<input id="ep" type="number" value="0">
+<input id="ep" type="number" min="0" value="0">
 
 <button onclick="oblicz()">Oblicz</button>
 
 <div id="wynik"></div>
+<div id="rysunek"></div>
 
 <script>
 function oblicz() {
+
   const DLUGOSC = 13.4;
   const dW = 0.95;
   const dEP3 = 1.2;
   const dEP2 = 0.8;
 
-  let w = +document.getElementById("w").value;
-  let ep = +document.getElementById("ep").value;
+  let w = Number(document.getElementById("w").value);
+  let ep = Number(document.getElementById("ep").value);
 
-  let wynik = "";
-  let plan = [];
   let zajete = 0;
+  let rys = [];
 
   // ===== W =====
   let rzedowW = Math.ceil(w / 2);
   zajete += rzedowW * dW;
 
-  for (let i=0;i<rzedowW*2;i++) {
-    if (i < w) plan.push("w");
+  for (let i = 0; i < Math.floor(w / 2); i++) {
+    rys.push(["W","W"]);
+  }
+  if (w % 2 === 1) {
+    rys.push(["W","W"]); // NIE rysujemy połówek
   }
 
   // ===== EP =====
@@ -106,52 +121,57 @@ function oblicz() {
   let resztaEP = ep % 3;
 
   zajete += rzedowEP3 * dEP3;
-  if (resztaEP >= 2) zajete += dEP2;
 
-  let roznica = +(DLUGOSC - zajete).toFixed(2);
-
-  wynik += `<strong>Zajęta długość:</strong> ${zajete.toFixed(2)} m<br>`;
-  wynik += `<strong>Wolne miejsce:</strong> ${Math.max(0,roznica).toFixed(2)} m<br>`;
-
-  // ❌ ZA DUŻO PALET
-  if (roznica < 0) {
-    wynik += `<strong style="color:red">ZA DUŻO PALET – usuń ${Math.abs(roznica).toFixed(2)} m</strong>`;
-    document.getElementById("wynik").innerHTML = wynik;
-    return;
+  for (let i = 0; i < rzedowEP3; i++) {
+    rys.push(["EP","EP","EP"]);
   }
 
-  // ===== RYSUNEK =====
-  wynik += `<hr><strong>Instrukcja załadunku:</strong><br>`;
-
-  let krok = 1;
-  if (rzedowW)
-    wynik += `${krok++}. Załaduj ${rzedowW} rzędów W (2 palety)<br>`;
-  if (rzedowEP3)
-    wynik += `${krok++}. Załaduj ${rzedowEP3} rzędy EP po 3 palety (1,2 m)<br>`;
-  if (resztaEP >= 2)
-    wynik += `${krok++}. Załaduj 2 palety EP po szerokości (0,8 m)<br>`;
-
-  // ===== RYSUNEK =====
-  wynik += `<div class="plan">`;
-
-  for (let i=0;i<rzedowW*2;i++)
-    wynik += `<div class="palet w">W</div>`;
-
-  for (let i=0;i<rzedowEP3;i++)
-    wynik += `<div class="palet ep3">EP EP EP</div>`;
-
+  let ep2 = 0;
   if (resztaEP >= 2) {
-    wynik += `<div class="palet ep2">EP</div>`;
-    wynik += `<div class="palet ep2">EP</div>`;
+    zajete += dEP2;
+    ep2 = 1;
+    rys.push(["EP","EP"]);
   }
 
-  let wolneRzedy = Math.round(roznica / dW);
-  for (let i=0;i<wolneRzedy*2;i++)
-    wynik += `<div class="palet empty"></div>`;
+  let wolne = +(DLUGOSC - zajete).toFixed(2);
 
-  wynik += `</div>`;
+  // ===== WYNIK =====
+  let html = `
+  <b>Zajęta długość:</b> ${zajete.toFixed(2)} m<br>
+  <b>Wolne miejsce:</b> ${wolne >= 0 ? wolne : 0} m<br>
+  `;
 
-  document.getElementById("wynik").innerHTML = wynik;
+  if (wolne < 0) {
+    html += `<b style="color:red">ZA DUŻO PALET – usuń ${Math.abs(wolne).toFixed(2)} m</b>`;
+  }
+
+  document.getElementById("wynik").innerHTML = html;
+
+  // ===== RYSUNEK =====
+  let draw = `<div class="naczepa">`;
+
+  rys.forEach(r => {
+    draw += `<div class="rzad">`;
+    r.forEach(p => {
+      draw += `<div class="paleta ${p}">${p}</div>`;
+    });
+    draw += `</div>`;
+  });
+
+  // wolne miejsce
+  if (wolne > 0) {
+    let emptyRows = Math.floor(wolne / 0.95);
+    for (let i = 0; i < emptyRows; i++) {
+      draw += `
+      <div class="rzad">
+        <div class="paleta empty"></div>
+        <div class="paleta empty"></div>
+      </div>`;
+    }
+  }
+
+  draw += `</div>`;
+  document.getElementById("rysunek").innerHTML = draw;
 }
 </script>
 
