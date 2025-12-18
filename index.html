@@ -6,107 +6,73 @@
 <title>Kalkulator załadunku W + EP</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
-  margin: 0;
-  padding: 20px;
+body{
+  font-family:Arial, sans-serif;
+  background:#f2f2f2;
+  padding:20px;
+}
+.card{
+  max-width:480px;
+  margin:auto;
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+}
+h2{ text-align:center; }
+input,button{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  font-size:16px;
+}
+button{
+  background:#0d6efd;
+  color:#fff;
+  border:none;
+  border-radius:6px;
 }
 
-.card {
-  max-width: 520px;
-  margin: auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
+.info, .instrukcja{
+  margin-top:15px;
+  font-size:15px;
 }
 
-h1 {
-  text-align: center;
+.trailer{
+  margin-top:15px;
+  border:3px solid #333;
+  border-radius:8px;
+  padding:6px;
 }
+.row{
+  display:flex;
+  margin-bottom:4px;
+}
+.cell{
+  flex:1;
+  height:22px;
+  margin:2px;
+  border-radius:4px;
+}
+.W{background:#4a90e2;}
+.WEP{background:#f5a623;}
+.EP2{background:#2ecc71;}
+.EP3{background:#1e8449;}
+.free{background:#ccc;}
 
-label {
-  display: block;
-  margin-top: 12px;
-  font-weight: bold;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  font-size: 16px;
-}
-
-button {
-  margin-top: 15px;
-  width: 100%;
-  padding: 14px;
-  font-size: 18px;
-  background: #0a74ff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-}
-
-#wynik {
-  margin-top: 15px;
-  font-size: 16px;
-}
-
-#instrukcja {
-  margin-top: 15px;
-  font-size: 15px;
-}
-
-.trailer {
-  margin-top: 15px;
-  border: 2px solid #333;
-  border-radius: 8px;
-  padding: 6px;
-  background: #eee;
-}
-
-.row {
-  display: flex;
-  margin-bottom: 4px;
-}
-
-.box {
-  flex: 1;
-  height: 22px;
-  margin: 1px;
-  border-radius: 4px;
-}
-
-.w { background: #4a90e2; }
-.wep { background: #f5a623; }
-.ep2 { background: #2ecc71; }
-.ep3 { background: #27ae60; }
-.free { background: #ccc; }
-
-.legend {
-  margin-top: 10px;
-  font-size: 13px;
-}
-.legend span {
-  display: inline-block;
-  margin-right: 10px;
-}
-.legend i {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  margin-right: 4px;
-  vertical-align: middle;
+.legend span{
+  display:inline-block;
+  padding:4px 8px;
+  margin:3px;
+  border-radius:4px;
+  font-size:12px;
 }
 </style>
 </head>
 
 <body>
-
 <div class="card">
-<h1>Kalkulator załadunku W + EP</h1>
+
+<h2>Kalkulator załadunku W + EP</h2>
 
 <label>Palety W</label>
 <input id="w" type="number" min="0" value="0">
@@ -114,119 +80,130 @@ button {
 <label>Palety EP</label>
 <input id="ep" type="number" min="0" value="0">
 
-<button onclick="oblicz()">Oblicz</button>
+<button onclick="calc()">Oblicz</button>
 
-<div id="wynik"></div>
-<div id="instrukcja"></div>
-<div id="rysunek"></div>
+<div class="info" id="info"></div>
+<div class="instrukcja" id="instrukcja"></div>
+<div class="trailer" id="draw"></div>
+
+<div class="legend">
+  <span class="W">W</span>
+  <span class="WEP">W + EP</span>
+  <span class="EP2">EP (2)</span>
+  <span class="EP3">EP (3)</span>
+  <span class="free">Wolne</span>
+</div>
+
 </div>
 
 <script>
-function oblicz() {
-  const DL = 13.4;
+const MAX = 13.4;
 
-  let W = parseInt(document.getElementById("w").value) || 0;
-  let EP = parseInt(document.getElementById("ep").value) || 0;
+/* -------- LOGIKA EP --------
+   Minimalna liczba dwójek tak,
+   aby reszta była podzielna przez 3
+-------------------------------- */
+function buildEP(epCount){
+  let ep2 = 0;
+  let ep3 = 0;
 
-  let zajete = 0;
-  let instrukcja = [];
-  let rys = [];
-
-  // --- RZĘDY W ---
-  let rzedW = Math.floor(W / 2);
-  if (rzedW > 0) {
-    zajete += rzedW * 1.0;
-    instrukcja.push(`Załaduj ${rzedW} rzędów W (2 palety)`);
-    for (let i = 0; i < rzedW; i++) {
-      rys.push(["w","w"]);
+  for(let k=0; k*2 <= epCount; k++){
+    if((epCount - 2*k) % 3 === 0){
+      ep2 = k;
+      ep3 = (epCount - 2*k) / 3;
+      break;
     }
-    W -= rzedW * 2;
   }
 
-  // --- RZĄD W + EP ---
-  if (W === 1 && EP >= 1) {
-    zajete += 1.0;
-    instrukcja.push("Załaduj 1 rząd mieszany W + EP");
-    rys.push(["w","wep"]);
-    W -= 1;
+  let rows = [];
+  for(let i=0;i<ep2;i++) rows.push({t:"EP2", len:0.8});
+  for(let i=0;i<ep3;i++) rows.push({t:"EP3", len:1.2});
+  return rows;
+}
+
+function calc(){
+  let W = +document.getElementById("w").value;
+  let EP = +document.getElementById("ep").value;
+
+  let rows = [];
+  let instrukcja = [];
+  let used = 0;
+
+  // --- W ---
+  let wRows = Math.floor(W / 2);
+  for(let i=0;i<wRows;i++){
+    rows.push({t:"W", len:1.0});
+    instrukcja.push("Załaduj rząd W (2 palety)");
+    used += 1.0;
+  }
+  W %= 2;
+
+  // --- W + EP ---
+  if(W === 1 && EP >= 1){
+    rows.push({t:"WEP", len:1.0});
+    instrukcja.push("Załaduj rząd mieszany W + EP");
+    used += 1.0;
     EP -= 1;
   }
 
-  // --- EP(2) NAJPIERW ---
-  let rzedEP2 = Math.floor(EP / 2);
-  if (rzedEP2 > 0) {
-    zajete += rzedEP2 * 0.8;
-    instrukcja.push(`Załaduj ${rzedEP2} rzędów EP po 2 palety`);
-    for (let i = 0; i < rzedEP2; i++) {
-      rys.push(["ep2","ep2"]);
-    }
-    EP -= rzedEP2 * 2;
-  }
+  // --- EP ---
+  let epRows = buildEP(EP);
+  epRows.forEach(r=>{
+    rows.push(r);
+    instrukcja.push(
+      r.t === "EP2"
+      ? "Załaduj rząd EP (2 palety)"
+      : "Załaduj rząd EP (3 palety)"
+    );
+    used += r.len;
+  });
 
-  // --- EP(3) ---
-  let rzedEP3 = Math.floor(EP / 3);
-  if (rzedEP3 > 0) {
-    zajete += rzedEP3 * 1.2;
-    instrukcja.push(`Załaduj ${rzedEP3} rzędów EP po 3 palety`);
-    for (let i = 0; i < rzedEP3; i++) {
-      rys.push(["ep3","ep3","ep3"]);
-    }
-    EP -= rzedEP3 * 3;
-  }
+  let free = +(MAX - used).toFixed(2);
 
-  // --- POJEDYNCZA EP ---
-  if (EP === 1) {
-    if (DL - zajete >= 0.8) {
-      zajete += 0.8;
-      instrukcja.push("Została 1 EP → dołóż 1 EP i zrób rząd EP(2)");
-      rys.push(["ep2","ep2"]);
-    } else {
-      instrukcja.push("Została 1 EP → nie mieści się, usuń ją");
-    }
-  }
+  // --- Co można doładować ---
+  let addW = Math.floor(free / 1.0) * 2;
+  let addEP2 = Math.floor(free / 0.8) * 2;
+  let addEP3 = Math.floor(free / 1.2) * 3;
 
-  let wolne = Math.max(0, DL - zajete);
-
-  document.getElementById("wynik").innerHTML =
-    `<b>Zajęte:</b> ${zajete.toFixed(2)} m<br>
-     <b>Wolne:</b> ${wolne.toFixed(2)} m`;
-
-  // --- CO MOŻNA DOŁOŻYĆ ---
-  let moznaW = Math.floor(wolne / 1.0) * 2;
-  let moznaEP2 = Math.floor(wolne / 0.8) * 2;
-  let moznaEP3 = Math.floor(wolne / 1.2) * 3;
-
-  instrukcja.push("<b>Można jeszcze doładować:</b>");
-  if (moznaW > 0) instrukcja.push(`${moznaW} palet W`);
-  if (moznaEP2 > 0) instrukcja.push(`${moznaEP2} palet EP (rząd 2)`);
-  if (moznaEP3 > 0) instrukcja.push(`${moznaEP3} palet EP (rząd 3)`);
+  document.getElementById("info").innerHTML = `
+    <b>Zajęte:</b> ${used.toFixed(2)} m<br>
+    <b>Wolne:</b> ${free} m<br><br>
+    <b>Można jeszcze doładować:</b><br>
+    • ${addW} palet W<br>
+    • ${addEP2} palet EP (rząd 2)<br>
+    • ${addEP3} palet EP (rząd 3)
+  `;
 
   document.getElementById("instrukcja").innerHTML =
-    "<ol>" + instrukcja.map(i => `<li>${i}</li>`).join("") + "</ol>";
+    "<b>Instrukcja załadunku:</b><ol>" +
+    instrukcja.map(i=>`<li>${i}</li>`).join("") +
+    "</ol>";
 
   // --- RYSUNEK ---
-  let html = `<div class="trailer">`;
-  rys.forEach(r => {
+  let html = "";
+  rows.forEach(r=>{
     html += `<div class="row">`;
-    r.forEach(b => html += `<div class="box ${b}"></div>`);
+    if(r.t==="W"){
+      html += `<div class="cell W"></div><div class="cell W"></div>`;
+    }
+    if(r.t==="WEP"){
+      html += `<div class="cell W"></div><div class="cell WEP"></div>`;
+    }
+    if(r.t==="EP2"){
+      html += `<div class="cell EP2"></div><div class="cell EP2"></div>`;
+    }
+    if(r.t==="EP3"){
+      html += `<div class="cell EP3"></div><div class="cell EP3"></div><div class="cell EP3"></div>`;
+    }
     html += `</div>`;
   });
 
-  let freeRows = Math.floor(wolne / 1.0);
-  for (let i = 0; i < freeRows; i++) {
-    html += `<div class="row"><div class="box free"></div><div class="box free"></div></div>`;
+  let freeRows = Math.floor(free / 1.0);
+  for(let i=0;i<freeRows;i++){
+    html += `<div class="row"><div class="cell free"></div><div class="cell free"></div></div>`;
   }
 
-  html += `</div>
-  <div class="legend">
-    <span><i class="w"></i>W</span>
-    <span><i class="wep"></i>W+EP</span>
-    <span><i class="ep2"></i>EP(2)</span>
-    <span><i class="ep3"></i>EP(3)</span>
-    <span><i class="free"></i>Wolne</span>
-  </div>`;
-
-  document.getElementById("rysunek").innerHTML = html;
+  document.getElementById("draw").innerHTML = html;
 }
 </script>
 
