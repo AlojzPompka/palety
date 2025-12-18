@@ -13,13 +13,9 @@ body {
   padding:20px;
 }
 
-h1 {
-  text-align:center;
-}
+h1 { text-align:center; }
 
-label {
-  font-weight:bold;
-}
+label { font-weight:bold; }
 
 input {
   width:100%;
@@ -38,15 +34,15 @@ button {
   border-radius:8px;
 }
 
-#wynik {
-  margin-top:20px;
+.box {
   background:#fff;
   padding:15px;
   border-radius:10px;
+  margin-top:20px;
 }
 
 .naczepa {
-  margin-top:20px;
+  margin-top:15px;
   background:#222;
   padding:10px;
   border-radius:12px;
@@ -59,8 +55,8 @@ button {
 }
 
 .paleta {
-  height:34px;
   flex:1;
+  height:34px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -88,7 +84,8 @@ button {
 
 <button onclick="oblicz()">Oblicz</button>
 
-<div id="wynik"></div>
+<div id="wynik" class="box"></div>
+<div id="instrukcja" class="box"></div>
 <div id="rysunek"></div>
 
 <script>
@@ -104,32 +101,38 @@ function oblicz() {
 
   let zajete = 0;
   let rys = [];
+  let instrukcja = [];
+  let krok = 1;
 
   // ===== W =====
   let rzedowW = Math.ceil(w / 2);
   zajete += rzedowW * dW;
 
-  for (let i = 0; i < Math.floor(w / 2); i++) {
-    rys.push(["W","W"]);
+  if (w >= 2) {
+    instrukcja.push(`${krok++}. Załaduj ${Math.floor(w/2)} rzędów palet W (2 palety w rzędzie)`);
+    for (let i=0;i<Math.floor(w/2);i++) rys.push(["W","W"]);
   }
+
   if (w % 2 === 1) {
-    rys.push(["W","W"]); // NIE rysujemy połówek
+    instrukcja.push(`${krok++}. Niepełny rząd W traktowany jako pełny rząd (bez dopychania EP)`);
+    rys.push(["W","W"]);
   }
 
   // ===== EP =====
   let rzedowEP3 = Math.floor(ep / 3);
   let resztaEP = ep % 3;
 
-  zajete += rzedowEP3 * dEP3;
-
-  for (let i = 0; i < rzedowEP3; i++) {
-    rys.push(["EP","EP","EP"]);
+  if (rzedowEP3 > 0) {
+    zajete += rzedowEP3 * dEP3;
+    instrukcja.push(`${krok++}. Załaduj ${rzedowEP3} rzędów EP po 3 palety (1,2 m)`);
+    for (let i=0;i<rzedowEP3;i++) rys.push(["EP","EP","EP"]);
   }
 
   let ep2 = 0;
   if (resztaEP >= 2) {
     zajete += dEP2;
     ep2 = 1;
+    instrukcja.push(`${krok++}. Załaduj 1 rząd EP po szerokości – 2 palety (0,8 m)`);
     rys.push(["EP","EP"]);
   }
 
@@ -138,30 +141,45 @@ function oblicz() {
   // ===== WYNIK =====
   let html = `
   <b>Zajęta długość:</b> ${zajete.toFixed(2)} m<br>
-  <b>Wolne miejsce:</b> ${wolne >= 0 ? wolne : 0} m<br>
+  <b>Wolne miejsce:</b> ${wolne > 0 ? wolne : 0} m<br>
   `;
 
   if (wolne < 0) {
     html += `<b style="color:red">ZA DUŻO PALET – usuń ${Math.abs(wolne).toFixed(2)} m</b>`;
+  } else {
+    let addW = Math.floor(wolne / dW) * 2;
+    let addEP3 = Math.floor(wolne / dEP3) * 3;
+
+    html += `<br><b>Można jeszcze załadować:</b><br>`;
+    if (addEP3 > 0) html += `• ${addEP3} palet EP (rzędy po 3)<br>`;
+    if (addW > 0) html += `• ${addW} palet W<br>`;
+    if (addEP3 === 0 && addW === 0) html += `• brak miejsca na pełny rząd`;
   }
 
   document.getElementById("wynik").innerHTML = html;
+
+  // ===== INSTRUKCJA =====
+  if (wolne < 0) {
+    document.getElementById("instrukcja").innerHTML =
+      `<b>Instrukcja:</b><br>Nie można załadować – usuń nadmiar palet`;
+  } else {
+    document.getElementById("instrukcja").innerHTML =
+      `<b>Instrukcja załadunku (krok po kroku):</b><br>` +
+      instrukcja.map(i => i).join("<br>");
+  }
 
   // ===== RYSUNEK =====
   let draw = `<div class="naczepa">`;
 
   rys.forEach(r => {
     draw += `<div class="rzad">`;
-    r.forEach(p => {
-      draw += `<div class="paleta ${p}">${p}</div>`;
-    });
+    r.forEach(p => draw += `<div class="paleta ${p}">${p}</div>`);
     draw += `</div>`;
   });
 
-  // wolne miejsce
   if (wolne > 0) {
-    let emptyRows = Math.floor(wolne / 0.95);
-    for (let i = 0; i < emptyRows; i++) {
+    let emptyRows = Math.floor(wolne / dW);
+    for (let i=0;i<emptyRows;i++) {
       draw += `
       <div class="rzad">
         <div class="paleta empty"></div>
