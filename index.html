@@ -3,183 +3,173 @@
 <head>
 <meta charset="UTF-8">
 <title>Kalkulator załadunku W + EP</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
 body{
-  font-family: system-ui, Arial;
-  background:#f2f2f2;
-  padding:20px;
+    font-family: Arial, sans-serif;
+    background:#f2f2f2;
+    padding:20px;
 }
-.card{
-  background:#fff;
-  max-width:420px;
-  margin:auto;
-  padding:20px;
-  border-radius:14px;
+.box{
+    max-width:420px;
+    background:#fff;
+    padding:20px;
+    border-radius:12px;
+    margin:auto;
 }
 input{
-  width:100%;
-  padding:10px;
-  margin:6px 0 14px;
-  font-size:16px;
+    width:100%;
+    padding:10px;
+    margin-bottom:12px;
+    font-size:16px;
 }
 button{
-  width:100%;
-  padding:12px;
-  background:#007aff;
-  color:#fff;
-  border:none;
-  border-radius:10px;
-  font-size:18px;
+    width:100%;
+    padding:12px;
+    background:#0a73ff;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    font-size:18px;
 }
 .result{
-  margin-top:16px;
-  font-size:15px;
+    margin-top:15px;
 }
 .trailer{
-  margin-top:14px;
-  background:#222;
-  padding:6px;
-  border-radius:10px;
+    margin-top:15px;
+    background:#222;
+    padding:8px;
+    border-radius:8px;
 }
 .row{
-  display:grid;
-  gap:4px;
-  margin-bottom:4px;
+    display:flex;
+    margin-bottom:3px;
 }
-.w2{ grid-template-columns:1fr 1fr; }
-.ep3{ grid-template-columns:1fr 1fr 1fr; }
-.ep2{ grid-template-columns:1fr 1fr; }
-
-.box{
-  height:18px;            /* 🔽 ZMNIEJSZONY RYSUNEK */
-  border-radius:4px;
+.cell{
+    flex:1;
+    height:16px;
+    margin:1px;
+    border-radius:3px;
 }
-.w{background:#4a90e2;}
-.epmix{background:#f5a623;}
-.ep3c{background:#7ed321;}
-.ep2c{background:#417505;}
-.free{background:#aaa;}
-
+.w{background:#5aa0e6;}
+.wep{background:#f5a623;}
+.ep3{background:#6bcf63;}
+.ep2{background:#3f8f3f;}
+.free{background:#bbb;}
 .legend{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  font-size:12px;
-  margin-top:8px;
-}
-.legend span{
-  display:flex;
-  align-items:center;
-  gap:4px;
-}
-.legend i{
-  width:12px;
-  height:12px;
-  display:inline-block;
-  border-radius:3px;
+    font-size:12px;
+    margin-top:6px;
 }
 </style>
 </head>
-
 <body>
-<div class="card">
+
+<div class="box">
 <h2>Kalkulator załadunku W + EP</h2>
 
 <label>Palety W</label>
-<input type="number" id="w" value="0" min="0">
+<input id="w" type="number" min="0" value="0">
 
 <label>Palety EP</label>
-<input type="number" id="ep" value="0" min="0">
+<input id="ep" type="number" min="0" value="0">
 
-<button onclick="calculate()">Oblicz</button>
+<button onclick="licz()">Oblicz</button>
 
-<div class="result" id="text"></div>
-<div class="trailer" id="draw"></div>
-
-<div class="legend">
-  <span><i class="w"></i>W</span>
-  <span><i class="epmix"></i>W+EP</span>
-  <span><i class="ep3c"></i>EP(3)</span>
-  <span><i class="ep2c"></i>EP(2)</span>
-  <span><i class="free"></i>Wolne</span>
-</div>
+<div id="out" class="result"></div>
+<div id="draw" class="trailer"></div>
 </div>
 
 <script>
-const TRAILER = 13.4;
+const NACZEPA = 13.4;
 
-function calculate(){
-  let W = +document.getElementById("w").value;
-  let EP = +document.getElementById("ep").value;
+function licz(){
+    let w = +document.getElementById("w").value;
+    let ep = +document.getElementById("ep").value;
 
-  let rowsW = Math.floor(W/2);
-  let restW = W%2;
+    let rows = [];
+    let used = 0;
 
-  let rowsMix = restW && EP ? 1 : 0;
-  if(rowsMix){ EP--; }
+    // Rzędy W
+    let wRows = Math.floor(w / 2);
+    w -= wRows * 2;
+    used += wRows * 1.0;
+    for(let i=0;i<wRows;i++) rows.push("W");
 
-  let rowsEP3 = Math.floor(EP/3);
-  let restEP = EP%3;
+    // Rząd W+EP
+    if(w >= 1 && ep >= 1){
+        rows.push("WEP");
+        w--; ep--;
+        used += 1.0;
+    }
 
-  let rowsEP2 = restEP >=2 ? 1 : 0;
+    // EP(3)
+    let ep3 = Math.floor(ep / 3);
+    ep -= ep3 * 3;
+    used += ep3 * 1.2;
+    for(let i=0;i<ep3;i++) rows.push("EP3");
 
-  let used =
-    rowsW*1.0 +
-    rowsMix*1.0 +
-    rowsEP3*1.2 +
-    rowsEP2*0.8;
+    // EP(2)
+    let ep2 = Math.floor(ep / 2);
+    ep -= ep2 * 2;
+    used += ep2 * 0.8;
+    for(let i=0;i<ep2;i++) rows.push("EP2");
 
-  let free = +(TRAILER - used).toFixed(2);
+    let free = +(NACZEPA - used).toFixed(2);
 
-  let html = `
-    <b>Zajęte:</b> ${used.toFixed(2)} m<br>
-    <b>Wolne:</b> ${free>0?free:0} m
-    <hr>
-    <b>Rozpiska:</b>
-    <ul>
-      <li>Rzędy W: ${rowsW}</li>
-      ${rowsMix?'<li>Rząd W + EP</li>':''}
-      ${rowsEP3?'<li>Rzędy EP(3): '+rowsEP3+'</li>':''}
-      ${rowsEP2?'<li>Rzędy EP(2): '+rowsEP2+'</li>':''}
-    </ul>
-  `;
-  document.getElementById("text").innerHTML = html;
+    // Co można dołożyć
+    let addW = Math.floor(free / 1.0) * 2;
+    let addEP3 = Math.floor(free / 1.2) * 3;
+    let addEP2 = Math.floor(free / 0.8) * 2;
 
-  draw(rowsW, rowsMix, rowsEP3, rowsEP2, free);
+    document.getElementById("out").innerHTML = `
+        <b>Zajęte:</b> ${used.toFixed(2)} m<br>
+        <b>Wolne:</b> ${free} m
+        <hr>
+        <b>Można jeszcze doładować:</b><br>
+        • ${addW} palet W<br>
+        • ${addEP3} palet EP (rząd 3)<br>
+        • ${addEP2} palet EP (rząd 2)
+    `;
+
+    rysuj(rows, free);
 }
 
-function draw(w, mix, ep3, ep2, free){
-  let d = document.getElementById("draw");
-  d.innerHTML = "";
+function rysuj(rows, free){
+    let d = document.getElementById("draw");
+    d.innerHTML = "";
 
-  for(let i=0;i<w;i++){
-    d.innerHTML += `<div class="row w2">
-      <div class="box w"></div><div class="box w"></div>
+    rows.forEach(r=>{
+        let row = document.createElement("div");
+        row.className="row";
+
+        if(r==="W"){
+            row.innerHTML = `<div class="cell w"></div><div class="cell w"></div>`;
+        }
+        if(r==="WEP"){
+            row.innerHTML = `<div class="cell w"></div><div class="cell wep"></div>`;
+        }
+        if(r==="EP3"){
+            row.innerHTML = `<div class="cell ep3"></div><div class="cell ep3"></div><div class="cell ep3"></div>`;
+        }
+        if(r==="EP2"){
+            row.innerHTML = `<div class="cell ep2"></div><div class="cell ep2"></div>`;
+        }
+        d.appendChild(row);
+    });
+
+    let freeRows = Math.round(free / 0.2);
+    for(let i=0;i<freeRows;i++){
+        let r = document.createElement("div");
+        r.className="row";
+        r.innerHTML=`<div class="cell free"></div><div class="cell free"></div>`;
+        d.appendChild(r);
+    }
+
+    d.innerHTML += `
+    <div class="legend">
+    Niebieski=W | Pomarańcz=W+EP | Jasno zielony=EP(3) | Ciemny=EP(2) | Szary=wolne
     </div>`;
-  }
-  if(mix){
-    d.innerHTML += `<div class="row w2">
-      <div class="box w"></div><div class="box epmix"></div>
-    </div>`;
-  }
-  for(let i=0;i<ep3;i++){
-    d.innerHTML += `<div class="row ep3">
-      <div class="box ep3c"></div><div class="box ep3c"></div><div class="box ep3c"></div>
-    </div>`;
-  }
-  if(ep2){
-    d.innerHTML += `<div class="row ep2">
-      <div class="box ep2c"></div><div class="box ep2c"></div>
-    </div>`;
-  }
-  if(free>0){
-    d.innerHTML += `<div class="row w2">
-      <div class="box free"></div><div class="box free"></div>
-    </div>`;
-  }
 }
 </script>
+
 </body>
 </html>
