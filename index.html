@@ -7,155 +7,172 @@
 
 <style>
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f2f2f2;
-  padding: 20px;
+  font-family: system-ui, sans-serif;
+  background:#f2f2f2;
+  padding:20px;
 }
 .container {
-  max-width: 500px;
-  margin: auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,.1);
+  max-width: 750px;
+  margin:auto;
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
 }
-h1 {
-  text-align: center;
-}
-label {
-  font-weight: bold;
-  display: block;
-  margin-top: 15px;
-}
-input {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  margin-top: 5px;
+input, button {
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  margin-bottom:10px;
 }
 button {
-  margin-top: 20px;
-  width: 100%;
-  padding: 14px;
-  font-size: 18px;
-  background: #007aff;
-  color: white;
-  border: none;
-  border-radius: 10px;
+  background:#007aff;
+  color:white;
+  border:none;
+  border-radius:10px;
 }
-.result {
-  margin-top: 20px;
-  padding: 15px;
-  background: #fafafa;
-  border-radius: 10px;
+canvas {
+  margin-top:20px;
+  border:2px solid #333;
+  background:#eee;
 }
-hr {
-  margin: 15px 0;
+.legend span {
+  display:inline-block;
+  margin-right:15px;
+}
+.box {
+  display:inline-block;
+  width:16px;
+  height:16px;
+  margin-right:5px;
 }
 </style>
 </head>
 
 <body>
 <div class="container">
-  <h1>Kalkulator załadunku<br>W + EP</h1>
+<h2>Kalkulator załadunku W + EP</h2>
 
-  <label>Palety W</label>
-  <input type="number" id="w" value="0" min="0">
+<label>Palety W</label>
+<input id="w" type="number" min="0" value="0">
 
-  <label>Palety EP</label>
-  <input type="number" id="ep" value="0" min="0">
+<label>Palety EP</label>
+<input id="ep" type="number" min="0" value="0">
 
-  <button onclick="oblicz()">Oblicz</button>
+<button onclick="oblicz()">Oblicz</button>
 
-  <div id="wynik" class="result"></div>
+<div id="wynik"></div>
+
+<canvas id="naczepa" width="700" height="120"></canvas>
+
+<div class="legend">
+  <span><span class="box" style="background:#4a90e2"></span>W</span>
+  <span><span class="box" style="background:#f5a623"></span>EP (w W+EP)</span>
+  <span><span class="box" style="background:#7ed321"></span>EP(3)</span>
+  <span><span class="box" style="background:#417505"></span>EP(2)</span>
+  <span><span class="box" style="background:#ccc"></span>Wolne</span>
+</div>
 </div>
 
 <script>
 function oblicz() {
-  const DLUGOSC = 13.4;
+  const DL = 13.4;
+  const PX = 50;
 
-  let W = parseInt(document.getElementById("w").value) || 0;
-  let EP = parseInt(document.getElementById("ep").value) || 0;
+  let W = +document.getElementById("w").value || 0;
+  let EP = +document.getElementById("ep").value || 0;
 
+  let rzedy = [];
   let zajete = 0;
-  let info = [];
 
-  // ===== W =====
-  let rzedowW = Math.floor(W / 2);
-  zajete += rzedowW * 1.0;
-  W -= rzedowW * 2;
-
-  if (rzedowW > 0) {
-    info.push(`Rzędy W: ${rzedowW} × 1,0 m = ${(rzedowW * 1.0).toFixed(2)} m`);
+  // W
+  let rW = Math.floor(W / 2);
+  for (let i = 0; i < rW; i++) {
+    rzedy.push({ m: 1.0, typ: "W" });
+    zajete += 1.0;
   }
+  W -= rW * 2;
 
-  // ===== W + EP =====
+  // W + EP
   if (W === 1 && EP > 0) {
+    rzedy.push({ m: 1.0, typ: "WEP" });
     zajete += 1.0;
     W = 0;
     EP -= 1;
-    info.push(`Rząd W + EP: 1 × 1,0 m`);
   }
 
-  // ===== EP(3) =====
-  let rzedowEP3 = Math.floor(EP / 3);
-  zajete += rzedowEP3 * 1.2;
-  EP -= rzedowEP3 * 3;
-
-  if (rzedowEP3 > 0) {
-    info.push(`Rzędy EP(3): ${rzedowEP3} × 1,2 m = ${(rzedowEP3 * 1.2).toFixed(2)} m`);
+  // EP(3)
+  let rEP3 = Math.floor(EP / 3);
+  for (let i = 0; i < rEP3; i++) {
+    rzedy.push({ m: 1.2, typ: "EP3" });
+    zajete += 1.2;
   }
+  EP -= rEP3 * 3;
 
-  // ===== EP(2) =====
-  let rzedowEP2 = Math.floor(EP / 2);
-  zajete += rzedowEP2 * 0.8;
-  EP -= rzedowEP2 * 2;
-
-  if (rzedowEP2 > 0) {
-    info.push(`Rzędy EP(2): ${rzedowEP2} × 0,8 m = ${(rzedowEP2 * 0.8).toFixed(2)} m`);
+  // EP(2)
+  let rEP2 = Math.floor(EP / 2);
+  for (let i = 0; i < rEP2; i++) {
+    rzedy.push({ m: 0.8, typ: "EP2" });
+    zajete += 0.8;
   }
+  EP -= rEP2 * 2;
 
-  // ===== ZOSTAŁA 1 EP =====
-  let wolne = DLUGOSC - zajete;
-  let decyzja = "";
-
+  // reszta EP
+  let wolne = DL - zajete;
   if (EP === 1) {
     if (wolne >= 1.2) {
+      rzedy.push({ m: 1.2, typ: "EP3" });
       zajete += 1.2;
-      wolne -= 1.2;
-      decyzja = "Została 1 EP → dołóż 2 EP → rząd EP(3) (1,2 m)";
     } else if (wolne >= 0.8) {
+      rzedy.push({ m: 0.8, typ: "EP2" });
       zajete += 0.8;
-      wolne -= 0.8;
-      decyzja = "Została 1 EP → dołóż 1 EP → rząd EP(2) (0,8 m)";
-    } else {
-      decyzja = "Została 1 EP → usunąć (brak 0,8 m)";
     }
   }
 
-  wolne = DLUGOSC - zajete;
+  rysuj(rzedy, DL - zajete, PX);
 
-  // ===== CO MOŻNA DOŁOŻYĆ =====
-  let dodW = Math.floor(wolne / 1.0) * 2;
-  let dodEP3 = Math.floor(wolne / 1.2) * 3;
-  let dodEP2 = Math.floor(wolne / 0.8) * 2;
+  document.getElementById("wynik").innerHTML =
+    `<b>Zajęte:</b> ${zajete.toFixed(2)} m<br>
+     <b>Wolne:</b> ${(DL - zajete).toFixed(2)} m`;
+}
 
-  // ===== WYNIK =====
-  document.getElementById("wynik").innerHTML = `
-    <b>Zajęta długość:</b> ${zajete.toFixed(2)} m<br>
-    <b>Wolna długość:</b> ${wolne.toFixed(2)} m
-    <hr>
-    <b>Rozpiska:</b>
-    <ul>${info.map(i => `<li>${i}</li>`).join("")}</ul>
-    ${decyzja ? `<hr><b>${decyzja}</b>` : ""}
-    <hr>
-    <b>Można jeszcze dołożyć:</b>
-    <ul>
-      <li>${dodW} palet W</li>
-      <li>${dodEP3} palet EP (rzędy po 3)</li>
-      <li>${dodEP2} palet EP (rzędy po 2)</li>
-    </ul>
-  `;
+function rysuj(rzedy, wolne, PX) {
+  const c = document.getElementById("naczepa");
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  let x = 0;
+
+  rzedy.forEach(r => {
+    let w = r.m * PX;
+
+    if (r.typ === "W") {
+      drawRow(ctx, x, w, ["#4a90e2", "#4a90e2"]);
+    }
+    if (r.typ === "WEP") {
+      drawRow(ctx, x, w, ["#4a90e2", "#f5a623"]);
+    }
+    if (r.typ === "EP3") {
+      drawRow(ctx, x, w, ["#7ed321", "#7ed321", "#7ed321"]);
+    }
+    if (r.typ === "EP2") {
+      drawRow(ctx, x, w, ["#417505", "#417505"]);
+    }
+
+    x += w;
+  });
+
+  if (wolne > 0) {
+    ctx.fillStyle = "#ccc";
+    ctx.fillRect(x, 20, wolne * PX, 80);
+  }
+}
+
+function drawRow(ctx, x, width, colors) {
+  const part = width / colors.length;
+  colors.forEach((c, i) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(x + i * part, 20, part - 2, 80);
+  });
 }
 </script>
 </body>
