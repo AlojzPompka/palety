@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Kalkulator załadunku W + EP</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f5f5f7;
+  margin: 0;
+  padding: 20px;
+}
+h1 {
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+label {
+  font-weight: 600;
+}
+input {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0 18px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+button {
+  width: 100%;
+  padding: 16px;
+  font-size: 20px;
+  border: none;
+  border-radius: 10px;
+  background: #007aff;
+  color: #fff;
+}
+#wynik {
+  background: #fff;
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 12px;
+}
+hr {
+  margin: 20px 0;
+}
+ul {
+  padding-left: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Kalkulator załadunku W + EP</h1>
+
+<label>Palety W:</label>
+<input id="w" type="number" min="0" value="0">
+
+<label>Palety EP:</label>
+<input id="ep" type="number" min="0" value="0">
+
+<button onclick="oblicz()">Oblicz</button>
+
+<div id="wynik"></div>
+
+<script>
+function oblicz() {
+
+  const DLUGOSC = 13.4;
+  const DL_W = 0.95;
+  const DL_EP3 = 1.2;
+  const DL_EP2 = 0.8;
+
+  let w = Number(document.getElementById("w").value);
+  let ep = Number(document.getElementById("ep").value);
+
+  let zajete = 0;
+  let instrukcja = [];
+  let krok = 1;
+
+  /* ===== W ===== */
+  let rzedowW = Math.ceil(w / 2);
+  if (rzedowW > 0) {
+    zajete += rzedowW * DL_W;
+    instrukcja.push(`${krok++}. Załaduj ${rzedowW} rzędów palet W (2 palety w rzędzie)`);
+  }
+
+  let resztaW = w % 2;
+
+  /* ===== Dopychanie EP do W ===== */
+  let epDopych = 0;
+  if (resztaW === 1 && ep > 0) {
+    ep--;
+    epDopych = 1;
+    instrukcja.push(`${krok++}. Dopychaj 1 paletę EP do niepełnego rzędu W`);
+  }
+
+  /* ===== EP trójkami ===== */
+  let rzedowEP3 = Math.floor(ep / 3);
+  let resztaEP = ep % 3;
+
+  if (rzedowEP3 > 0) {
+    zajete += rzedowEP3 * DL_EP3;
+    instrukcja.push(`${krok++}. Załaduj ${rzedowEP3} rzędów EP po 3 palety (1,2 m)`);
+  }
+
+  /* ===== EP dwójkami ===== */
+  let ep2 = 0;
+  if (resztaEP >= 2) ep2 = 2;
+  else if (resztaEP === 1 && rzedowEP3 > 0) ep2 = 2;
+
+  if (ep2 > 0) {
+    zajete += DL_EP2;
+    instrukcja.push(`${krok++}. Załaduj 2 palety EP w rzędzie po szerokości (0,8 m)`);
+  }
+
+  /* ===== PODSUMOWANIE ===== */
+  let wynik = `<strong>Zajęta długość:</strong> ${zajete.toFixed(2)} m<br>`;
+  let roznica = DLUGOSC - zajete;
+
+  if (roznica >= 0) {
+    wynik += `<strong>Wolne miejsce:</strong> ${roznica.toFixed(2)} m<br><br>`;
+    
+    let moznaEP = Math.floor(roznica / DL_EP3) * 3;
+    let moznaW = Math.floor(roznica / DL_W) * 2;
+
+    wynik += `<strong>Można jeszcze załadować:</strong><ul>`;
+    if (moznaEP > 0) wynik += `<li>${moznaEP} palet EP (trójkami)</li>`;
+    if (moznaW > 0) wynik += `<li>${moznaW} palet W (dwójkami)</li>`;
+    wynik += `</ul>`;
+  } else {
+    let brak = Math.abs(roznica);
+    let doUsuniecia = Math.ceil(brak / DL_EP2);
+    wynik += `<strong style="color:red">Za dużo palet!</strong><br>`;
+    wynik += `Usuń około <strong>${doUsuniecia} palet EP</strong><br>`;
+  }
+
+  if (instrukcja.length > 0) {
+    wynik += `<hr><strong>Instrukcja załadunku (krok po kroku):</strong><ol>`;
+    instrukcja.forEach(i => wynik += `<li>${i.replace(/^\d+\. /,'')}</li>`);
+    wynik += `</ol>`;
+  }
+
+  document.getElementById("wynik").innerHTML = wynik;
+}
+</script>
+
+</body>
+</html>
