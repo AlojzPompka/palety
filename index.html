@@ -2,185 +2,160 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kalkulator załadunku W + EP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background:#f2f2f2;
-  padding:20px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 20px;
 }
-.box {
-  background:#fff;
-  padding:20px;
-  border-radius:14px;
-  max-width:480px;
-  margin:auto;
+.container {
+  max-width: 500px;
+  margin: auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.1);
 }
-h1 { font-size:22px; margin-bottom:15px; }
-label { font-weight:600; }
-input {
-  width:100%;
-  padding:10px;
-  margin:6px 0 12px;
-  font-size:16px;
+h1 {
+  text-align: center;
 }
-.row {
-  display:flex;
-  gap:10px;
-  align-items:center;
+label {
+  font-weight: 600;
 }
-.btn {
-  width:44px;
-  height:44px;
-  font-size:24px;
-  border:none;
-  border-radius:10px;
-  background:#007aff;
-  color:#fff;
+input[type="number"] {
+  width: 100%;
+  padding: 12px;
+  margin: 6px 0 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
 }
-.btn:disabled {
-  background:#ccc;
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: #0a84ff;
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
 }
 .result {
-  margin-top:20px;
-  background:#fafafa;
-  padding:15px;
-  border-radius:10px;
+  margin-top: 20px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 12px;
 }
-.red { color:#c00; font-weight:700; }
-.small { font-size:14px; color:#555; }
-ul { padding-left:20px; }
+hr {
+  margin: 14px 0;
+}
+.small {
+  color: #555;
+  font-size: 14px;
+}
+.checkbox {
+  margin-bottom: 14px;
+}
 </style>
 </head>
 
 <body>
-<div class="box">
+<div class="container">
 <h1>Kalkulator załadunku W + EP</h1>
 
 <label>Palety W</label>
-<input type="number" id="w" min="0" value="0" oninput="oblicz()">
+<input type="number" id="w" min="0" value="0">
 
 <label>Palety EP</label>
-<input type="number" id="ep" min="0" value="0" oninput="oblicz()">
+<input type="number" id="ep" min="0" value="0">
 
-<label>Jedynki W (przód, środek)</label>
-<div class="row">
-  <button class="btn" id="jwMinus" onclick="zmienJedynke('jw', -1)">−</button>
-  <input type="number" id="jw" min="0" value="0" oninput="oblicz()">
-  <button class="btn" id="jwPlus" onclick="zmienJedynke('jw', 1)">+</button>
+<div class="checkbox">
+  <label>
+    <input type="checkbox" id="allowSingles">
+    Zezwól na jedynki (rozciąganie ładunku)
+  </label>
 </div>
 
-<label>Jedynki EP (przód, środek)</label>
-<div class="row">
-  <button class="btn" id="jepMinus" onclick="zmienJedynke('jep', -1)">−</button>
-  <input type="number" id="jep" min="0" value="0" oninput="oblicz()">
-  <button class="btn" id="jepPlus" onclick="zmienJedynke('jep', 1)">+</button>
-</div>
+<button onclick="oblicz()">Oblicz</button>
 
 <div class="result" id="wynik"></div>
 </div>
 
 <script>
-const NACZEPA = 13.4;
-const W_LEN = 1.0;
-const EP_LEN = 0.8;
+function oblicz() {
 
-function zmienJedynke(id, delta) {
-  const el = document.getElementById(id);
-  let nowa = Number(el.value) + delta;
-  if (nowa < 0) nowa = 0;
-  el.value = nowa;
-  oblicz(true);
-}
+  const DLUGOSC = 13.4;
 
-function oblicz(zPrzycisku = false) {
+  let W = +document.getElementById("w").value;
+  let EP = +document.getElementById("ep").value;
+  let allowSingles = document.getElementById("allowSingles").checked;
 
-  let w = +document.getElementById("w").value;
-  let ep = +document.getElementById("ep").value;
-  let jw = +document.getElementById("jw").value;
-  let jep = +document.getElementById("jep").value;
+  let instrukcja = [];
 
-  let zajete = 0;
-  let rozpiska = [];
+  // --- W ---
+  let rzedyW = Math.floor(W / 2);
+  let resztaW = W % 2;
+  let jedynkiW = 0;
 
-  // ===== JEDYNKI =====
-  let mJW = jw * 2 * W_LEN;
-  let mJEP = jep * EP_LEN;
+  if (resztaW === 1 && allowSingles) {
+    jedynkiW = 1;
+    rzedyW++;
+    instrukcja.push("Jedynka W na środku (liczona jako 1 rząd)");
+  }
 
-  zajete += mJW + mJEP;
+  // --- EP ---
+  let rzedyEP3 = Math.floor(EP / 3);
+  let resztaEP = EP % 3;
+  let rzedyEP2 = 0;
+  let jedynkiEP = 0;
 
-  // ===== BLOKADA PRZEKROCZENIA =====
-  if (zajete > NACZEPA) {
-    // cofamy ostatnią zmianę
-    if (zPrzycisku) {
-      if (jw > 0) document.getElementById("jw").value = jw - 1;
-      else if (jep > 0) document.getElementById("jep").value = jep - 1;
-      return oblicz();
+  if (resztaEP === 2) {
+    rzedyEP2 = 1;
+  }
+
+  if (resztaEP === 1) {
+    if (allowSingles) {
+      jedynkiEP = 1;
+    } else if (rzedyEP3 > 0) {
+      rzedyEP3--;
+      rzedyEP2 += 2;
     }
   }
 
-  if (jw > 0) {
-    rozpiska.push(`Jedynki W: ${jw} × 2,0 m = ${mJW.toFixed(2)} m`);
-    w = Math.max(0, w - jw);
-  }
+  let metryW = rzedyW * 1.0;
+  let metryEP = (rzedyEP3 + rzedyEP2) * 0.8 + (jedynkiEP ? 0.8 : 0);
 
-  if (jep > 0) {
-    rozpiska.push(`Jedynki EP: ${jep} × 0,8 m = ${mJEP.toFixed(2)} m`);
-    ep = Math.max(0, ep - jep);
-  }
+  let zajete = +(metryW + metryEP).toFixed(2);
+  let wolne = +(DLUGOSC - zajete).toFixed(2);
 
-  // ===== RZĘDY W =====
-  let rzedowW = Math.floor(w / 2);
-  let mW = rzedowW * W_LEN;
-  zajete += mW;
-  if (rzedowW > 0)
-    rozpiska.push(`Rzędy W: ${rzedowW} × 1,0 m = ${mW.toFixed(2)} m`);
+  // --- ile można dołożyć ---
+  let moznaW = Math.floor(wolne / 1.0) * 2;
+  let moznaEP = Math.floor(wolne / 0.8) * 3;
 
-  // ===== RZĘDY EP =====
-  let rzedowEP = Math.floor(ep / 3);
-  let mEP = rzedowEP * EP_LEN;
-  zajete += mEP;
-  if (rzedowEP > 0)
-    rozpiska.push(`Rzędy EP: ${rzedowEP} × 0,8 m = ${mEP.toFixed(2)} m`);
+  // --- instrukcja ---
+  instrukcja.push(`Rzędy W: ${rzedyW} × 1,0 m`);
+  instrukcja.push(`Rzędy EP (3): ${rzedyEP3} × 0,8 m`);
+  instrukcja.push(`Rzędy EP (2): ${rzedyEP2} × 0,8 m`);
+  if (jedynkiEP) instrukcja.push("Jedynka EP na środku");
 
-  let wolne = +(NACZEPA - zajete).toFixed(2);
-
-  // ===== BLOKADA PRZYCISKÓW + =====
-  document.getElementById("jwPlus").disabled = wolne < 2;
-  document.getElementById("jepPlus").disabled = wolne < 0.8;
-
-  let html = `
-    <b>Zajęta długość:</b> ${zajete.toFixed(2)} m<br>
-    <b>Wolna długość:</b> ${wolne > 0 ? wolne : 0} m
+  document.getElementById("wynik").innerHTML = `
+    <strong>Zajęta długość:</strong> ${zajete} m<br>
+    <strong>Wolna długość:</strong> ${wolne < 0 ? 0 : wolne} m
     <hr>
-    <b>Rozpiska metrów:</b>
-    <ul>${rozpiska.map(r => `<li>${r}</li>`).join("")}</ul>
+    <strong>Rozpiska:</strong>
+    <ul>${instrukcja.map(i => `<li>${i}</li>`).join("")}</ul>
+    <hr>
+    <strong>Można jeszcze dołożyć:</strong><br>
+    ${wolne > 0 ? `${moznaW} W lub ${moznaEP} EP` : "Brak miejsca"}
+    <div class="small">
+      Jedynki używane tylko jeśli zaznaczysz opcję
+    </div>
   `;
-
-  if (wolne <= 0) {
-    html += `<div class="red">BRAK MIEJSCA – naczepa pełna</div>`;
-  } else {
-    html += `
-      <hr>
-      <b>Można jeszcze dołożyć:</b><br>
-      ${Math.floor(wolne / W_LEN)} W lub
-      ${Math.floor(wolne / EP_LEN)} EP
-      <div class="small">
-        Podpowiedź: ${
-          wolne >= 2 ? "jedynka W" :
-          wolne >= 0.8 ? "jedynka EP" :
-          "brak miejsca na jedynki"
-        }
-      </div>
-    `;
-  }
-
-  document.getElementById("wynik").innerHTML = html;
 }
-
-oblicz();
 </script>
 </body>
 </html>
