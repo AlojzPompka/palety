@@ -1,179 +1,189 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
 <title>Kalkulator załadunku W + EP</title>
-
 <style>
 body {
-  font-family: system-ui, sans-serif;
-  background:#f2f2f2;
-  padding:20px;
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  padding: 20px;
 }
-.container {
-  max-width: 750px;
-  margin:auto;
-  background:#fff;
-  padding:20px;
-  border-radius:12px;
+.card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 600px;
+  margin: auto;
 }
-input, button {
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  margin-bottom:10px;
+input {
+  width: 100%;
+  padding: 10px;
+  font-size: 18px;
+  margin-bottom: 10px;
 }
 button {
-  background:#007aff;
-  color:white;
-  border:none;
-  border-radius:10px;
+  width: 100%;
+  padding: 12px;
+  font-size: 18px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
 }
-canvas {
-  margin-top:20px;
-  border:2px solid #333;
-  background:#eee;
+.result {
+  margin-top: 15px;
+  font-size: 16px;
+}
+.trailer {
+  margin-top: 20px;
+  background: #222;
+  padding: 10px;
+  border-radius: 8px;
+}
+.row {
+  display: flex;
+  margin-bottom: 4px;
+}
+.cell {
+  flex: 1;
+  height: 28px;
+  margin: 2px;
+  border-radius: 4px;
+}
+.w { background: #4a90e2; }
+.epw { background: orange; }
+.ep3 { background: #4caf50; }
+.ep2 { background: #2e7d32; }
+.free { background: #aaa; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.legend div {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  font-size: 14px;
 }
 .legend span {
-  display:inline-block;
-  margin-right:15px;
-}
-.box {
-  display:inline-block;
-  width:16px;
-  height:16px;
-  margin-right:5px;
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  margin-right: 5px;
 }
 </style>
 </head>
 
 <body>
-<div class="container">
-<h2>Kalkulator załadunku W + EP</h2>
+<div class="card">
+  <h2>Kalkulator załadunku W + EP</h2>
 
-<label>Palety W</label>
-<input id="w" type="number" min="0" value="0">
+  <label>Palety W</label>
+  <input type="number" id="w" value="13">
 
-<label>Palety EP</label>
-<input id="ep" type="number" min="0" value="0">
+  <label>Palety EP</label>
+  <input type="number" id="ep" value="11">
 
-<button onclick="oblicz()">Oblicz</button>
+  <button onclick="calculate()">Oblicz</button>
 
-<div id="wynik"></div>
+  <div class="result" id="text"></div>
+  <div class="trailer" id="trailer"></div>
 
-<canvas id="naczepa" width="700" height="120"></canvas>
-
-<div class="legend">
-  <span><span class="box" style="background:#4a90e2"></span>W</span>
-  <span><span class="box" style="background:#f5a623"></span>EP (w W+EP)</span>
-  <span><span class="box" style="background:#7ed321"></span>EP(3)</span>
-  <span><span class="box" style="background:#417505"></span>EP(2)</span>
-  <span><span class="box" style="background:#ccc"></span>Wolne</span>
-</div>
+  <div class="legend">
+    <div><span class="w"></span>W</div>
+    <div><span class="epw"></span>EP (W+EP)</div>
+    <div><span class="ep3"></span>EP(3)</div>
+    <div><span class="ep2"></span>EP(2)</div>
+    <div><span class="free"></span>Wolne</div>
+  </div>
 </div>
 
 <script>
-function oblicz() {
-  const DL = 13.4;
-  const PX = 50;
+const TRAILER = 13.4;
 
-  let W = +document.getElementById("w").value || 0;
-  let EP = +document.getElementById("ep").value || 0;
+function calculate() {
+  let W = +document.getElementById('w').value;
+  let EP = +document.getElementById('ep').value;
 
-  let rzedy = [];
-  let zajete = 0;
+  let rows = [];
+  let used = 0;
 
-  // W
-  let rW = Math.floor(W / 2);
-  for (let i = 0; i < rW; i++) {
-    rzedy.push({ m: 1.0, typ: "W" });
-    zajete += 1.0;
+  // Rzędy W (2 W = 1 m)
+  let wRows = Math.floor(W / 2);
+  for (let i = 0; i < wRows; i++) {
+    rows.push({ type: 'W' });
+    used += 1;
   }
-  W -= rW * 2;
+  W %= 2;
 
-  // W + EP
-  if (W === 1 && EP > 0) {
-    rzedy.push({ m: 1.0, typ: "WEP" });
-    zajete += 1.0;
-    W = 0;
+  // Rząd W + EP
+  if (W === 1 && EP >= 1) {
+    rows.push({ type: 'WEP' });
+    used += 1;
     EP -= 1;
   }
 
   // EP(3)
-  let rEP3 = Math.floor(EP / 3);
-  for (let i = 0; i < rEP3; i++) {
-    rzedy.push({ m: 1.2, typ: "EP3" });
-    zajete += 1.2;
+  let ep3 = Math.floor(EP / 3);
+  for (let i = 0; i < ep3; i++) {
+    rows.push({ type: 'EP3' });
+    used += 1.2;
   }
-  EP -= rEP3 * 3;
+  EP %= 3;
 
   // EP(2)
-  let rEP2 = Math.floor(EP / 2);
-  for (let i = 0; i < rEP2; i++) {
-    rzedy.push({ m: 0.8, typ: "EP2" });
-    zajete += 0.8;
-  }
-  EP -= rEP2 * 2;
-
-  // reszta EP
-  let wolne = DL - zajete;
-  if (EP === 1) {
-    if (wolne >= 1.2) {
-      rzedy.push({ m: 1.2, typ: "EP3" });
-      zajete += 1.2;
-    } else if (wolne >= 0.8) {
-      rzedy.push({ m: 0.8, typ: "EP2" });
-      zajete += 0.8;
-    }
+  if (EP === 1 && TRAILER - used >= 0.8) {
+    rows.push({ type: 'EP2' });
+    used += 0.8;
+    EP = 0;
   }
 
-  rysuj(rzedy, DL - zajete, PX);
+  let free = Math.max(0, (TRAILER - used).toFixed(2));
 
-  document.getElementById("wynik").innerHTML =
-    `<b>Zajęte:</b> ${zajete.toFixed(2)} m<br>
-     <b>Wolne:</b> ${(DL - zajete).toFixed(2)} m`;
+  document.getElementById('text').innerHTML = `
+    <b>Zajęte:</b> ${used.toFixed(2)} m<br>
+    <b>Wolne:</b> ${free} m
+  `;
+
+  draw(rows, free);
 }
 
-function rysuj(rzedy, wolne, PX) {
-  const c = document.getElementById("naczepa");
-  const ctx = c.getContext("2d");
-  ctx.clearRect(0, 0, c.width, c.height);
+function draw(rows, free) {
+  const trailer = document.getElementById('trailer');
+  trailer.innerHTML = '';
 
-  let x = 0;
+  rows.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'row';
 
-  rzedy.forEach(r => {
-    let w = r.m * PX;
-
-    if (r.typ === "W") {
-      drawRow(ctx, x, w, ["#4a90e2", "#4a90e2"]);
+    if (r.type === 'W') {
+      row.innerHTML = `<div class="cell w"></div><div class="cell w"></div>`;
     }
-    if (r.typ === "WEP") {
-      drawRow(ctx, x, w, ["#4a90e2", "#f5a623"]);
+    if (r.type === 'WEP') {
+      row.innerHTML = `<div class="cell w"></div><div class="cell epw"></div>`;
     }
-    if (r.typ === "EP3") {
-      drawRow(ctx, x, w, ["#7ed321", "#7ed321", "#7ed321"]);
+    if (r.type === 'EP3') {
+      row.innerHTML = `<div class="cell ep3"></div><div class="cell ep3"></div><div class="cell ep3"></div>`;
     }
-    if (r.typ === "EP2") {
-      drawRow(ctx, x, w, ["#417505", "#417505"]);
+    if (r.type === 'EP2') {
+      row.innerHTML = `<div class="cell ep2"></div><div class="cell ep2"></div>`;
     }
 
-    x += w;
+    trailer.appendChild(row);
   });
 
-  if (wolne > 0) {
-    ctx.fillStyle = "#ccc";
-    ctx.fillRect(x, 20, wolne * PX, 80);
+  if (free > 0) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `<div class="cell free"></div>`;
+    trailer.appendChild(row);
   }
 }
 
-function drawRow(ctx, x, width, colors) {
-  const part = width / colors.length;
-  colors.forEach((c, i) => {
-    ctx.fillStyle = c;
-    ctx.fillRect(x + i * part, 20, part - 2, 80);
-  });
-}
+calculate();
 </script>
 </body>
 </html>
