@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator Palet</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007aff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Palety">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 20px;
+      background: #f7f7f7;
+    }
+    h2 { margin-bottom: 20px; }
+    label {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 12px;
+      width: 100%;
+      font-size: 18px;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+    #wynik {
+      margin-top: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      font-size: 17px;
+    }
+    hr { margin: 15px 0; }
+    ul, ol { margin-left: 20px; }
+  </style>
+</head>
+<body>
+
+<h2>Kalkulator załadunku W + EP</h2>
+
+<label>Palety W:
+  <input type="number" id="w" value="0" min="0">
+</label>
+
+<label>Palety EP:
+  <input type="number" id="ep" value="0" min="0">
+</label>
+
+<button onclick="oblicz()">Oblicz</button>
+
+<div id="wynik"></div>
+
+<script>
+function oblicz() {
+  const DLUGOSC = 13.4;
+  const dlW = 0.95, dlEP3 = 1.2, dlEP2 = 0.8;
+
+  let w = +document.getElementById("w").value;
+  let ep = +document.getElementById("ep").value;
+  let zajete = 0;
+
+  const pelneW = Math.floor(w / 2);
+  const resztaW = w % 2;
+  const rzedyW = pelneW + (resztaW ? 1 : 0);
+  zajete += rzedyW * dlW;
+
+  let epDopych = 0;
+  if (resztaW && ep > 0) { ep--; epDopych = 1; }
+
+  let rzedyEP3 = Math.floor(ep / 3);
+  let resztaEP = ep % 3;
+  let ep2 = 0;
+
+  if (resztaEP === 1 && rzedyEP3 > 0) {
+    rzedyEP3–; ep2 = 2;
+  } else if (resztaEP >= 2) {
+    ep2 = 2;
+  }
+
+  zajete += rzedyEP3 * dlEP3;
+  if (ep2) zajete += dlEP2;
+
+  const wolne = DLUGOSC - zajete;
+  let out = `<strong>Zajęta długość:</strong> ${zajete.toFixed(2)} m<br>`;
+
+  if (wolne >= 0) {
+    out += `<strong>Wolne miejsce:</strong> ${wolne.toFixed(2)} m<br>`;
+    let add3 = Math.floor(wolne / dlEP3);
+    let rest = wolne - add3 * dlEP3;
+    let add2 = rest >= dlEP2 ? 1 : 0;
+
+    out += `<strong>Można jeszcze załadować:</strong><ul>`;
+    if (add3 || add2)
+      out += `<li>${add3*3 + add2*2} palet EP → ${add3 ? add3+"×3" : ""}${add2 ? " + 1×2" : ""}</li>`;
+    let addW = Math.floor(wolne / dlW);
+    if (addW) out += `<li>${addW*2} palet W → ${addW} pełne rzędy</li>`;
+    out += `</ul>`;
+  } else {
+    out += `<strong style="color:red">Za dużo palet!</strong>`;
+  }
+
+  document.getElementById("wynik").innerHTML = out;
+}
+
+// service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
+</body>
+</html>
