@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kalkulator załadunku W + EP</title>
+
 <style>
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -11,127 +12,149 @@ body {
   padding: 20px;
 }
 .container {
-  max-width: 420px;
+  max-width: 500px;
   margin: auto;
   background: #fff;
   padding: 20px;
   border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.1);
 }
 h1 {
   text-align: center;
 }
+label {
+  font-weight: bold;
+  display: block;
+  margin-top: 15px;
+}
 input {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
+  padding: 12px;
   font-size: 16px;
+  margin-top: 5px;
 }
 button {
+  margin-top: 20px;
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   font-size: 18px;
   background: #007aff;
-  color: #fff;
+  color: white;
   border: none;
   border-radius: 10px;
 }
 .result {
   margin-top: 20px;
-  background: #fafafa;
   padding: 15px;
+  background: #fafafa;
   border-radius: 10px;
 }
-hr { margin: 12px 0; }
+hr {
+  margin: 15px 0;
+}
 </style>
 </head>
 
 <body>
 <div class="container">
-<h1>Kalkulator załadunku<br>W + EP</h1>
+  <h1>Kalkulator załadunku<br>W + EP</h1>
 
-<label>Palety W</label>
-<input type="number" id="w" min="0" value="0">
+  <label>Palety W</label>
+  <input type="number" id="w" value="0" min="0">
 
-<label>Palety EP</label>
-<input type="number" id="ep" min="0" value="0">
+  <label>Palety EP</label>
+  <input type="number" id="ep" value="0" min="0">
 
-<button onclick="licz()">Oblicz</button>
+  <button onclick="oblicz()">Oblicz</button>
 
-<div class="result" id="wynik"></div>
+  <div id="wynik" class="result"></div>
 </div>
 
 <script>
-function licz() {
-  const MAX = 13.4;
+function oblicz() {
+  const DLUGOSC = 13.4;
+
   let W = parseInt(document.getElementById("w").value) || 0;
   let EP = parseInt(document.getElementById("ep").value) || 0;
 
-  let metry = 0;
-  let opis = [];
+  let zajete = 0;
+  let info = [];
 
-  // --- W ---
+  // ===== W =====
   let rzedowW = Math.floor(W / 2);
-  metry += rzedowW * 1.0;
-  opis.push(`Rzędy W: ${rzedowW} × 1,0 m = ${(rzedowW*1).toFixed(2)} m`);
+  zajete += rzedowW * 1.0;
   W -= rzedowW * 2;
 
-  // --- mieszany W + EP ---
-  let rzedMix = 0;
-  if (W === 1 && EP >= 1) {
-    rzedMix = 1;
-    metry += 1.0;
-    W = 0;
-    EP -= 1;
-    opis.push(`Rząd W + EP: 1 × 1,0 m`);
+  if (rzedowW > 0) {
+    info.push(`Rzędy W: ${rzedowW} × 1,0 m = ${(rzedowW * 1.0).toFixed(2)} m`);
   }
 
-  // --- EP(3) ---
+  // ===== W + EP =====
+  if (W === 1 && EP > 0) {
+    zajete += 1.0;
+    W = 0;
+    EP -= 1;
+    info.push(`Rząd W + EP: 1 × 1,0 m`);
+  }
+
+  // ===== EP(3) =====
   let rzedowEP3 = Math.floor(EP / 3);
-  metry += rzedowEP3 * 1.2;
-  opis.push(`Rzędy EP(3): ${rzedowEP3} × 1,2 m = ${(rzedowEP3*1.2).toFixed(2)} m`);
+  zajete += rzedowEP3 * 1.2;
   EP -= rzedowEP3 * 3;
 
-  // --- EP(2) ---
+  if (rzedowEP3 > 0) {
+    info.push(`Rzędy EP(3): ${rzedowEP3} × 1,2 m = ${(rzedowEP3 * 1.2).toFixed(2)} m`);
+  }
+
+  // ===== EP(2) =====
   let rzedowEP2 = Math.floor(EP / 2);
-  metry += rzedowEP2 * 0.8;
-  opis.push(`Rzędy EP(2): ${rzedowEP2} × 0,8 m = ${(rzedowEP2*0.8).toFixed(2)} m`);
+  zajete += rzedowEP2 * 0.8;
   EP -= rzedowEP2 * 2;
 
-  let decyzjaEP = "";
+  if (rzedowEP2 > 0) {
+    info.push(`Rzędy EP(2): ${rzedowEP2} × 0,8 m = ${(rzedowEP2 * 0.8).toFixed(2)} m`);
+  }
 
-  // --- została 1 EP ---
+  // ===== ZOSTAŁA 1 EP =====
+  let wolne = DLUGOSC - zajete;
+  let decyzja = "";
+
   if (EP === 1) {
-    let opcjaDodaj = metry + 1.2 <= MAX;
-    let opcjaUsun = true;
-
-    if (opcjaDodaj) {
-      decyzjaEP = "Została 1 EP → doważyć 2 EP (rząd EP(3), 1,2 m)";
-      metry += 1.2;
-      opis.push("Doważono EP: +1 rząd EP(3) = 1,2 m");
+    if (wolne >= 1.2) {
+      zajete += 1.2;
+      wolne -= 1.2;
+      decyzja = "Została 1 EP → dołóż 2 EP → rząd EP(3) (1,2 m)";
+    } else if (wolne >= 0.8) {
+      zajete += 0.8;
+      wolne -= 0.8;
+      decyzja = "Została 1 EP → dołóż 1 EP → rząd EP(2) (0,8 m)";
     } else {
-      decyzjaEP = "Została 1 EP → usunięta (brak miejsca)";
-      opis.push("Usunięto 1 EP");
+      decyzja = "Została 1 EP → usunąć (brak 0,8 m)";
     }
   }
 
-  let wolne = MAX - metry;
+  wolne = DLUGOSC - zajete;
 
-  let moznaW = Math.floor(wolne / 1.0) * 2;
-  let moznaEP3 = Math.floor(wolne / 1.2) * 3;
-  let moznaEP2 = Math.floor(wolne / 0.8) * 2;
+  // ===== CO MOŻNA DOŁOŻYĆ =====
+  let dodW = Math.floor(wolne / 1.0) * 2;
+  let dodEP3 = Math.floor(wolne / 1.2) * 3;
+  let dodEP2 = Math.floor(wolne / 0.8) * 2;
 
+  // ===== WYNIK =====
   document.getElementById("wynik").innerHTML = `
-    <b>Zajęta długość:</b> ${metry.toFixed(2)} m<br>
+    <b>Zajęta długość:</b> ${zajete.toFixed(2)} m<br>
     <b>Wolna długość:</b> ${wolne.toFixed(2)} m
     <hr>
     <b>Rozpiska:</b>
-    <ul>${opis.map(o => `<li>${o}</li>`).join("")}</ul>
-    ${decyzjaEP ? "<hr><b>" + decyzjaEP + "</b>" : ""}
+    <ul>${info.map(i => `<li>${i}</li>`).join("")}</ul>
+    ${decyzja ? `<hr><b>${decyzja}</b>` : ""}
     <hr>
-    <b>Można jeszcze dołożyć:</b><br>
-    • ${moznaW} palet W<br>
-    • ${moznaEP3} palet EP (rząd 3)<br>
-    • ${moznaEP2} palet EP (rząd 2)
+    <b>Można jeszcze dołożyć:</b>
+    <ul>
+      <li>${dodW} palet W</li>
+      <li>${dodEP3} palet EP (rzędy po 3)</li>
+      <li>${dodEP2} palet EP (rzędy po 2)</li>
+    </ul>
   `;
 }
 </script>
