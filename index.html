@@ -2,70 +2,66 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kalkulator załadunku W + EP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator palet W + EP</title>
 
 <style>
-body{
-  font-family:Arial, sans-serif;
+body {
+  font-family: system-ui, sans-serif;
   background:#f2f2f2;
   padding:20px;
 }
-h1{text-align:center}
-label{font-weight:bold}
-input{
+
+h1 { text-align:center; }
+
+input, button {
   width:100%;
-  padding:10px;
+  padding:12px;
+  margin:8px 0;
   font-size:16px;
-  margin-bottom:10px;
 }
-button{
-  width:100%;
-  padding:14px;
-  font-size:18px;
+
+button {
   background:#007aff;
   color:#fff;
   border:none;
   border-radius:8px;
 }
-#wynik{
-  background:#fff;
-  margin-top:20px;
-  padding:15px;
-  border-radius:8px;
-}
-hr{margin:15px 0}
 
-/* ===== RYSUNEK ===== */
-.naczepa{
-  width:600px;        /* 13.4 m */
-  max-width:100%;
-  background:#222;
+#wynik {
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  margin-top:15px;
+}
+
+.plan {
+  background:#1e1e1e;
   padding:10px;
   border-radius:10px;
-  margin:20px auto;
+  margin-top:15px;
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:6px;
 }
-.rzad{
-  display:flex;
-  margin-bottom:4px;
-}
-.paleta{
+
+.palet {
   height:40px;
-  border-radius:4px;
-  margin-right:4px;
-  color:#fff;
-  font-size:12px;
+  border-radius:6px;
   display:flex;
   align-items:center;
   justify-content:center;
+  font-weight:700;
+  color:#fff;
+  font-size:14px;
 }
-.w{background:#3498db; width:90px;}      /* 0.95 m */
-.ep{background:#27ae60; width:60px;}     /* 1.2 m / 3 = 0.4 → wizual */
-.ep2{background:#f39c12; width:80px;}    /* 0.8 m */
-.wolne{
-  background:#ccc;
-  border:2px dashed #999;
-}
+
+.w { background:#5fa8dc; }
+.ep3 { background:#57b26b; grid-column:span 2; }
+.ep2 { background:#e3a33f; }
+.empty { background:#555; }
+
+hr { margin:15px 0; }
 </style>
 </head>
 
@@ -74,18 +70,18 @@ hr{margin:15px 0}
 <h1>Kalkulator załadunku W + EP</h1>
 
 <label>Palety W:</label>
-<input id="w" type="number" min="0" value="0">
+<input id="w" type="number" value="0">
 
 <label>Palety EP:</label>
-<input id="ep" type="number" min="0" value="0">
+<input id="ep" type="number" value="0">
 
 <button onclick="oblicz()">Oblicz</button>
 
 <div id="wynik"></div>
 
 <script>
-function oblicz(){
-  const DL = 13.4;
+function oblicz() {
+  const DLUGOSC = 13.4;
   const dW = 0.95;
   const dEP3 = 1.2;
   const dEP2 = 0.8;
@@ -93,83 +89,69 @@ function oblicz(){
   let w = +document.getElementById("w").value;
   let ep = +document.getElementById("ep").value;
 
+  let wynik = "";
+  let plan = [];
   let zajete = 0;
-  let instrukcja = [];
-  let naczepaHTML = '<div class="naczepa">';
 
-  /* ==== W ==== */
-  let rzedyW = Math.ceil(w / 2);
-  zajete += rzedyW * dW;
+  // ===== W =====
+  let rzedowW = Math.ceil(w / 2);
+  zajete += rzedowW * dW;
 
-  for(let i=0;i<rzedyW;i++){
-    naczepaHTML += `<div class="rzad"><div class="paleta w">W</div><div class="paleta w">W</div></div>`;
-  }
-  if(w>0) instrukcja.push(`${rzedyW} rzędów W (2 palety)`);
-
-  /* ==== DOPYCH EP DO W ==== */
-  let resztaW = w % 2;
-  let epDopych = 0;
-  if(resztaW && ep>0){
-    ep--;
-    epDopych = 1;
-    naczepaHTML += `<div class="rzad"><div class="paleta ep2">EP</div></div>`;
-    instrukcja.push("1 EP dopychany do W");
+  for (let i=0;i<rzedowW*2;i++) {
+    if (i < w) plan.push("w");
   }
 
-  /* ==== EP 3 ==== */
-  let rzedyEP3 = Math.floor(ep / 3);
-  zajete += rzedyEP3 * dEP3;
-
-  for(let i=0;i<rzedyEP3;i++){
-    naczepaHTML += `
-    <div class="rzad">
-      <div class="paleta ep">EP</div>
-      <div class="paleta ep">EP</div>
-      <div class="paleta ep">EP</div>
-    </div>`;
-  }
-  if(rzedyEP3>0) instrukcja.push(`${rzedyEP3} rzędy EP po 3`);
-
-  /* ==== EP 2 ==== */
+  // ===== EP =====
+  let rzedowEP3 = Math.floor(ep / 3);
   let resztaEP = ep % 3;
-  let ep2 = 0;
-  if(resztaEP >= 2){
-    ep2 = 1;
-    zajete += dEP2;
-    naczepaHTML += `
-    <div class="rzad">
-      <div class="paleta ep2">EP</div>
-      <div class="paleta ep2">EP</div>
-    </div>`;
-    instrukcja.push("1 rząd EP po 2");
+
+  zajete += rzedowEP3 * dEP3;
+  if (resztaEP >= 2) zajete += dEP2;
+
+  let roznica = +(DLUGOSC - zajete).toFixed(2);
+
+  wynik += `<strong>Zajęta długość:</strong> ${zajete.toFixed(2)} m<br>`;
+  wynik += `<strong>Wolne miejsce:</strong> ${Math.max(0,roznica).toFixed(2)} m<br>`;
+
+  // ❌ ZA DUŻO PALET
+  if (roznica < 0) {
+    wynik += `<strong style="color:red">ZA DUŻO PALET – usuń ${Math.abs(roznica).toFixed(2)} m</strong>`;
+    document.getElementById("wynik").innerHTML = wynik;
+    return;
   }
 
-  let wolne = +(DL - zajete).toFixed(2);
+  // ===== RYSUNEK =====
+  wynik += `<hr><strong>Instrukcja załadunku:</strong><br>`;
 
-  /* ==== WOLNE MIEJSCE NA RYSUNKU ==== */
-  if(wolne > 0){
-    let px = Math.round((wolne / DL) * 600);
-    naczepaHTML += `<div class="rzad"><div class="paleta wolne" style="width:${px}px"></div></div>`;
+  let krok = 1;
+  if (rzedowW)
+    wynik += `${krok++}. Załaduj ${rzedowW} rzędów W (2 palety)<br>`;
+  if (rzedowEP3)
+    wynik += `${krok++}. Załaduj ${rzedowEP3} rzędy EP po 3 palety (1,2 m)<br>`;
+  if (resztaEP >= 2)
+    wynik += `${krok++}. Załaduj 2 palety EP po szerokości (0,8 m)<br>`;
+
+  // ===== RYSUNEK =====
+  wynik += `<div class="plan">`;
+
+  for (let i=0;i<rzedowW*2;i++)
+    wynik += `<div class="palet w">W</div>`;
+
+  for (let i=0;i<rzedowEP3;i++)
+    wynik += `<div class="palet ep3">EP EP EP</div>`;
+
+  if (resztaEP >= 2) {
+    wynik += `<div class="palet ep2">EP</div>`;
+    wynik += `<div class="palet ep2">EP</div>`;
   }
 
-  naczepaHTML += "</div>";
+  let wolneRzedy = Math.round(roznica / dW);
+  for (let i=0;i<wolneRzedy*2;i++)
+    wynik += `<div class="palet empty"></div>`;
 
-  /* ==== WYNIK ==== */
-  let html = `
-  <b>Zajęta długość:</b> ${zajete.toFixed(2)} m<br>
-  <b>Wolne miejsce:</b> ${wolne>0 ? wolne+" m" : "0 m"}<br>
-  ${wolne<0 ? "<b>ZA DUŻO PALET – usuń "+Math.abs(wolne).toFixed(2)+" m</b>" : ""}
-  <hr>`;
+  wynik += `</div>`;
 
-  if(wolne>=0){
-    html += "<b>Instrukcja załadunku:</b><ol>";
-    instrukcja.forEach(i=>html+=`<li>${i}</li>`);
-    html += "</ol>";
-  } else {
-    html += "<b>Nie można załadować – za dużo palet</b>";
-  }
-
-  document.getElementById("wynik").innerHTML = html + naczepaHTML;
+  document.getElementById("wynik").innerHTML = wynik;
 }
 </script>
 
