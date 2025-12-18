@@ -2,196 +2,142 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kalkulator załadunku W + EP</title>
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background:#f2f2f2;
-  margin:0;
   padding:20px;
 }
-
-h1 { text-align:center; }
-
-label { font-weight:bold; }
-
+.box {
+  background:#fff;
+  padding:20px;
+  border-radius:14px;
+  max-width:420px;
+  margin:auto;
+}
+h1 { font-size:22px; margin-bottom:15px; }
+label { font-weight:600; }
 input {
   width:100%;
-  padding:12px;
-  margin:6px 0 16px;
+  padding:10px;
+  margin:8px 0 15px;
   font-size:16px;
 }
-
 button {
   width:100%;
   padding:14px;
   font-size:18px;
-  background:#1976f2;
+  background:#007aff;
   color:#fff;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
 }
-
-.box {
-  background:#fff;
+.result {
+  margin-top:20px;
+  background:#fafafa;
   padding:15px;
   border-radius:10px;
-  margin-top:20px;
 }
-
-.naczepa {
-  margin-top:15px;
-  background:#222;
-  padding:10px;
-  border-radius:12px;
-}
-
-.rzad {
-  display:flex;
-  gap:6px;
-  margin-bottom:6px;
-}
-
-.paleta {
-  flex:1;
-  height:34px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:12px;
-  font-weight:bold;
-  color:#fff;
-  border-radius:6px;
-}
-
-.W { background:#4aa3df; }
-.EP { background:#4caf50; }
-.empty { background:#555; color:#aaa; }
+hr { margin:15px 0; }
+ul { padding-left:20px; }
 </style>
 </head>
 
 <body>
-
+<div class="box">
 <h1>Kalkulator załadunku W + EP</h1>
 
-<label>Palety W:</label>
-<input id="w" type="number" min="0" value="0">
+<label>Palety W</label>
+<input type="number" id="w" value="0">
 
-<label>Palety EP:</label>
-<input id="ep" type="number" min="0" value="0">
+<label>Palety EP</label>
+<input type="number" id="ep" value="0">
 
 <button onclick="oblicz()">Oblicz</button>
 
-<div id="wynik" class="box"></div>
-<div id="instrukcja" class="box"></div>
-<div id="rysunek"></div>
+<div class="result" id="wynik"></div>
+</div>
 
 <script>
 function oblicz() {
 
-  const DLUGOSC = 13.4;
-  const dW = 0.95;
-  const dEP3 = 1.2;
-  const dEP2 = 0.8;
+  const NACZEPA = 13.4;      // ← ZMIANA TUTAJ
+  const W_LEN = 1.0;
+  const EP_LEN = 0.8;
 
   let w = Number(document.getElementById("w").value);
   let ep = Number(document.getElementById("ep").value);
 
-  let zajete = 0;
-  let rys = [];
   let instrukcja = [];
-  let krok = 1;
+  let zajete = 0;
 
-  // ===== W =====
-  let rzedowW = Math.ceil(w / 2);
-  zajete += rzedowW * dW;
-
-  if (w >= 2) {
-    instrukcja.push(`${krok++}. Załaduj ${Math.floor(w/2)} rzędów palet W (2 palety w rzędzie)`);
-    for (let i=0;i<Math.floor(w/2);i++) rys.push(["W","W"]);
-  }
+  // ===== JEDYNKI NA POCZĄTKU =====
+  let jedynkiW = 0;
+  let jedynkiEP = 0;
 
   if (w % 2 === 1) {
-    instrukcja.push(`${krok++}. Niepełny rząd W traktowany jako pełny rząd (bez dopychania EP)`);
-    rys.push(["W","W"]);
+    jedynkiW = 1;
+    w--;
+    zajete += 2 * W_LEN;
+    instrukcja.push("Jedynka W na środku (liczona jak 2W)");
   }
 
-  // ===== EP =====
-  let rzedowEP3 = Math.floor(ep / 3);
+  if (ep % 3 === 1) {
+    jedynkiEP = 1;
+    ep--;
+    zajete += EP_LEN;
+    instrukcja.push("Jedynka EP na środku");
+  }
+
+  // ===== PEŁNE RZĘDY W =====
+  let rzedowW = Math.floor(w / 2);
+  if (rzedowW > 0) {
+    zajete += rzedowW * W_LEN;
+    instrukcja.push(`Załaduj ${rzedowW} rzędów W (po 2 palety)`);
+  }
+
+  // ===== PEŁNE RZĘDY EP =====
+  let rzedowEP = Math.floor(ep / 3);
+  if (rzedowEP > 0) {
+    zajete += rzedowEP * EP_LEN;
+    instrukcja.push(`Załaduj ${rzedowEP} rzędów EP (po 3 palety)`);
+  }
+
+  // ===== RESZTKI =====
+  let resztaW = w % 2;
   let resztaEP = ep % 3;
 
-  if (rzedowEP3 > 0) {
-    zajete += rzedowEP3 * dEP3;
-    instrukcja.push(`${krok++}. Załaduj ${rzedowEP3} rzędów EP po 3 palety (1,2 m)`);
-    for (let i=0;i<rzedowEP3;i++) rys.push(["EP","EP","EP"]);
+  if (resztaW && resztaEP >= 1) {
+    zajete += W_LEN;
+    instrukcja.push("Mieszany rząd: 1W + 1EP");
+    resztaW--;
+    resztaEP--;
   }
 
-  let ep2 = 0;
-  if (resztaEP >= 2) {
-    zajete += dEP2;
-    ep2 = 1;
-    instrukcja.push(`${krok++}. Załaduj 1 rząd EP po szerokości – 2 palety (0,8 m)`);
-    rys.push(["EP","EP"]);
-  }
+  let wolne = +(NACZEPA - zajete).toFixed(2);
 
-  let wolne = +(DLUGOSC - zajete).toFixed(2);
-
-  // ===== WYNIK =====
-  let html = `
-  <b>Zajęta długość:</b> ${zajete.toFixed(2)} m<br>
-  <b>Wolne miejsce:</b> ${wolne > 0 ? wolne : 0} m<br>
+  let komunikat = `
+    <b>Zajęta długość:</b> ${zajete.toFixed(2)} m<br>
+    <b>Wolne miejsce:</b> ${wolne > 0 ? wolne : 0} m
   `;
 
   if (wolne < 0) {
-    html += `<b style="color:red">ZA DUŻO PALET – usuń ${Math.abs(wolne).toFixed(2)} m</b>`;
+    komunikat += `<br><b>ZA DUŻO PALET – usuń ${Math.abs(wolne).toFixed(2)} m</b>`;
   } else {
-    let addW = Math.floor(wolne / dW) * 2;
-    let addEP3 = Math.floor(wolne / dEP3) * 3;
-
-    html += `<br><b>Można jeszcze załadować:</b><br>`;
-    if (addEP3 > 0) html += `• ${addEP3} palet EP (rzędy po 3)<br>`;
-    if (addW > 0) html += `• ${addW} palet W<br>`;
-    if (addEP3 === 0 && addW === 0) html += `• brak miejsca na pełny rząd`;
+    let dodW = Math.floor(wolne / W_LEN);
+    let dodEP = Math.floor(wolne / EP_LEN);
+    komunikat += `<br><b>Można jeszcze doładować:</b> ${dodW} W lub ${dodEP} EP`;
   }
 
-  document.getElementById("wynik").innerHTML = html;
+  komunikat += `<hr><b>Instrukcja ładowania:</b><ul>`;
+  instrukcja.forEach(i => komunikat += `<li>${i}</li>`);
+  komunikat += `</ul>`;
 
-  // ===== INSTRUKCJA =====
-  if (wolne < 0) {
-    document.getElementById("instrukcja").innerHTML =
-      `<b>Instrukcja:</b><br>Nie można załadować – usuń nadmiar palet`;
-  } else {
-    document.getElementById("instrukcja").innerHTML =
-      `<b>Instrukcja załadunku (krok po kroku):</b><br>` +
-      instrukcja.map(i => i).join("<br>");
-  }
-
-  // ===== RYSUNEK =====
-  let draw = `<div class="naczepa">`;
-
-  rys.forEach(r => {
-    draw += `<div class="rzad">`;
-    r.forEach(p => draw += `<div class="paleta ${p}">${p}</div>`);
-    draw += `</div>`;
-  });
-
-  if (wolne > 0) {
-    let emptyRows = Math.floor(wolne / dW);
-    for (let i=0;i<emptyRows;i++) {
-      draw += `
-      <div class="rzad">
-        <div class="paleta empty"></div>
-        <div class="paleta empty"></div>
-      </div>`;
-    }
-  }
-
-  draw += `</div>`;
-  document.getElementById("rysunek").innerHTML = draw;
+  document.getElementById("wynik").innerHTML = komunikat;
 }
 </script>
-
 </body>
 </html>
