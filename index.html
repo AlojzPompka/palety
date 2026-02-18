@@ -3,40 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator Palet W + S – Mateusz</title>
+    <title>Kalkulator Palet W + S – Naczepa 13,6 m</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 720px;
+            max-width: 740px;
             margin: 30px auto;
             padding: 20px;
             background: #f8f9fa;
+            color: #212529;
         }
         h1 {
             color: #c82333;
             text-align: center;
+            margin-bottom: 25px;
         }
         .opis {
             background: #fff3cd;
-            padding: 15px;
+            padding: 16px;
             border-radius: 8px;
-            margin-bottom: 20px;
-            line-height: 1.5;
+            margin-bottom: 25px;
+            line-height: 1.55;
+            border-left: 5px solid #ffc107;
         }
         form {
             background: white;
-            padding: 25px;
+            padding: 28px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
         }
         label {
             font-weight: bold;
             display: block;
-            margin: 15px 0 6px;
+            margin: 18px 0 8px;
+            font-size: 1.05em;
         }
         input {
             width: 100%;
-            padding: 12px;
+            padding: 13px;
             font-size: 17px;
             border: 1px solid #ced4da;
             border-radius: 6px;
@@ -44,7 +48,7 @@
         }
         button {
             width: 100%;
-            padding: 14px;
+            padding: 15px;
             font-size: 18px;
             background: #28a745;
             color: white;
@@ -52,57 +56,60 @@
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 22px;
+            transition: background 0.2s;
         }
         button:hover {
             background: #218838;
         }
         #wynik {
-            margin-top: 30px;
+            margin-top: 35px;
             padding: 25px;
             background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            line-height: 1.7;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+            line-height: 1.65;
         }
         .section {
-            margin: 15px 0;
-            padding: 12px;
-            background: #e9ecef;
+            margin: 10px 0;
+            padding: 12px 16px;
+            background: #f1f3f5;
             border-radius: 6px;
+            border-left: 4px solid #007bff;
         }
         .alert {
             color: #dc3545;
             font-weight: bold;
+            margin: 12px 0;
         }
         .info {
             color: #6c757d;
-            font-size: 0.95em;
+            font-size: 0.94em;
+            margin-top: 12px;
         }
         #schemat {
-            border: 1px solid #999;
+            border: 1px solid #adb5bd;
             background: #f8f9fa;
-            margin-top: 20px;
+            margin-top: 25px;
             display: block;
             width: 100%;
-            height: 600px;
+            height: 720px;
+            border-radius: 6px;
         }
     </style>
 </head>
 <body>
-    <h1>Kalkulator mieszany W + S (naczepa 13,6 m)</h1>
+    <h1>Kalkulator Palet – Naczepa 13,6 m</h1>
 
     <div class="opis">
-        <strong>Format wejścia:</strong> Wpisz np. "10s i 10w" lub "15 S 20 W" – program rozpozna ilości.<br>
-        <strong>Algorytm:</strong> Optymalizuje układ, wypełniając całą naczepę (dodaje jedynki S na końcu, jeśli trzeba, aby zająć max miejsca).<br>
-        <strong>W:</strong> pary (2,4 m × 1,0 m).<br>
-        <strong>S:</strong> trójki (2,4×1,2 m), dwójki (2,4×0,8 m), jedynki (1,2×0,8 m lub 0,8×1,2 m – dobiera optymalnie).<br>
-        <strong>Mieszanka:</strong> nieparzysta W + S jako dwójka (0,8 m).
+        <strong>Format wpisywania:</strong> np. <code>12s 8w</code> lub <code>18s</code> lub <code>5s i 3w</code><br>
+        <strong>Kolejność ładowania:</strong> jedynki S (z przodu) → pary W → mieszana (jeśli potrzeba) → dwójki S → trójki S<br>
+        <strong>Na schemacie:</strong> <strong>każda paleta = osobny prostokąt</strong> (33 palety = 33 prostokąty)
     </div>
 
     <form id="form">
         <label>Ilość palet (np. 10s i 10w):</label>
-        <input type="text" id="ilosc" placeholder="10s i 10w" required>
+        <input type="text" id="ilosc" placeholder="10s i 10w" required autofocus>
 
         <button type="submit">Oblicz układ</button>
     </form>
@@ -113,187 +120,205 @@
         document.getElementById('form').addEventListener('submit', e => {
             e.preventDefault();
 
-            const input = document.getElementById('ilosc').value.toLowerCase();
+            const input = document.getElementById('ilosc').value.toLowerCase().replace(/i/g, '').replace(/\s+/g, ' ');
             const sMatch = input.match(/(\d+)\s*s/);
             const wMatch = input.match(/(\d+)\s*w/);
-            let s = sMatch ? parseInt(sMatch[1]) : 0;
-            let w = wMatch ? parseInt(wMatch[1]) : 0;
-            if (w === 0 && s === 0) return;
+            let totalS = sMatch ? parseInt(sMatch[1]) : 0;
+            let totalW = wMatch ? parseInt(wMatch[1]) : 0;
 
-            const TOTAL_LENGTH = 13.6;
-            const W_ROW_LEN = 1.0;
-            const S_TRIO_LEN = 1.2;
-            const S_DUO_LEN = 0.8;
-            const S_SINGLE_LEN = 0.8; // jedynka S – 0,8 m (krótszy bok w długości)
-            const MIX_DUO_LEN = 0.8;
+            if (totalS === 0 && totalW === 0) return;
 
-            let html = `<h3>${s} S + ${w} W</h3>`;
+            const L = 13.6;
+            const LEN_W_PAIR   = 1.0;
+            const LEN_S_TRIO   = 1.2;
+            const LEN_S_DUO    = 0.8;
+            const LEN_S_SINGLE = 0.8;
+            const LEN_MIX      = 0.8;
 
+            let rows = [];
             let occupied = 0;
-            let sections = [];
-            let rows = []; // {type, length, paletsCount, paletsPerRow, paletType}
+            let loadedS = 0;
+            let loadedW = 0;
 
-            // 1. Pełne pary W na początku
-            let fullWpairs = Math.floor(w / 2);
-            if (fullWpairs > 0) {
-                occupied += fullWpairs * W_ROW_LEN;
-                sections.push(`Przód: ${fullWpairs} × para W (po 2, 1,0 m)`);
-                rows.push({type: 'W-pair', length: W_ROW_LEN, paletsCount: fullWpairs * 2, paletsPerRow: 2, paletType: 'W'});
+            // 1. Jedynki S – zawsze z przodu
+            let maxSingles = Math.floor(L / LEN_S_SINGLE);
+            let singles = Math.min(totalS, maxSingles);
+            if (singles > 0) {
+                occupied += singles * LEN_S_SINGLE;
+                rows.push({ type: 'S-single', length: LEN_S_SINGLE, count: singles });
+                loadedS += singles;
+                totalS -= singles;
             }
 
-            let leftoverW = w % 2;
+            // 2. Pary W
+            let fullWPairs = Math.floor(totalW / 2);
+            let wSpace = fullWPairs * LEN_W_PAIR;
+            if (fullWPairs > 0 && occupied + wSpace <= L) {
+                occupied += wSpace;
+                rows.push({ type: 'W-pair', length: LEN_W_PAIR, count: fullWPairs });
+                loadedW += fullWPairs * 2;
+                totalW -= fullWPairs * 2;
+            }
 
-            // 2. Mieszana dwójka jeśli 1 W zostaje
+            // 3. Mieszana dwójka (jeśli została 1 W i jest S)
             let mixed = false;
-            if (leftoverW === 1 && s >= 1) {
+            if (totalW === 1 && totalS >= 1 && occupied + LEN_MIX <= L) {
                 mixed = true;
-                occupied += MIX_DUO_LEN;
-                sections.push(`Mieszana dwójka: 1 W + 1 S (0,8 m)`);
-                rows.push({type: 'mixed', length: MIX_DUO_LEN, paletsCount: 2, paletsPerRow: 2, paletType: 'W S'});
-                s -= 1;
-                leftoverW = 0;
+                occupied += LEN_MIX;
+                rows.push({ type: 'mixed', length: LEN_MIX, count: 1 });
+                loadedW += 1;
+                loadedS += 1;
+                totalS -= 1;
+                totalW = 0;
             }
 
-            // 3. Reszta S – optymalne: max trójek, potem dwójek, jedynek na końcu, aby wypełnić max miejsca
-            let bestOccupiedS = 0;
-            let bestTrio = 0, bestDuo = 0, bestSingle = 0;
+            // 4. Reszta S – maksymalne wypełnienie (trójki > dwójki)
+            let remLen = L - occupied;
+            let bestT = 0, bestD = 0, bestLen = 0;
 
-            // Szukamy kombinacji (trio + duo + single) dla s palet, max zajęte miejsce <= pozostałe
-            const remainingLength = TOTAL_LENGTH - occupied;
-            for (let t = Math.floor(s / 3); t >= 0; t--) {
-                let remAfterTrio = s - t * 3;
-                for (let d = Math.floor(remAfterTrio / 2); d >= 0; d--) {
-                    let singles = remAfterTrio - d * 2;
-                    let lenS = t * S_TRIO_LEN + d * S_DUO_LEN + singles * S_SINGLE_LEN;
-                    if (lenS <= remainingLength && lenS > bestOccupiedS) {
-                        bestOccupiedS = lenS;
-                        bestTrio = t;
-                        bestDuo = d;
-                        bestSingle = singles;
-                    }
+            for (let t = Math.floor(totalS / 3); t >= 0; t--) {
+                let remPal = totalS - t * 3;
+                let d = Math.floor(remPal / 2);
+                let len = t * LEN_S_TRIO + d * LEN_S_DUO;
+                if (len <= remLen && len > bestLen) {
+                    bestLen = len;
+                    bestT = t;
+                    bestD = d;
                 }
             }
 
-            occupied += bestOccupiedS;
-            if (bestDuo > 0) {
-                sections.push(`Dwójki S: ${bestDuo} rzędów (0,8 m)`);
-                rows.push({type: 'S-duo', length: S_DUO_LEN, paletsCount: bestDuo * 2, paletsPerRow: 2, paletType: 'S'});
-            }
-            if (bestTrio > 0) {
-                sections.push(`Trójki S: ${bestTrio} rzędów (1,2 m)`);
-                rows.push({type: 'S-trio', length: S_TRIO_LEN, paletsCount: bestTrio * 3, paletsPerRow: 3, paletType: 'S'});
-            }
-            if (bestSingle > 0) {
-                sections.push(`Jedynki S: ${bestSingle} rzędów (0,8 m)`);
-                rows.push({type: 'S-single', length: S_SINGLE_LEN, paletsCount: bestSingle, paletsPerRow: 1, paletType: 'S'});
+            if (bestLen > 0) {
+                occupied += bestLen;
+                if (bestD > 0) {
+                    rows.push({ type: 'S-duo', length: LEN_S_DUO, count: bestD });
+                    loadedS += bestD * 2;
+                }
+                if (bestT > 0) {
+                    rows.push({ type: 'S-trio', length: LEN_S_TRIO, count: bestT });
+                    loadedS += bestT * 3;
+                }
             }
 
-            let free = TOTAL_LENGTH - occupied;
+            let free = L - occupied;
+            let fillPercent = Math.round((occupied / L) * 100);
 
-            html += `<p><strong>Zajęte miejsce:</strong> ${occupied.toFixed(2)} m</p>`;
-            html += `<p><strong>Wolne miejsce:</strong> ${free.toFixed(2)} m ${free < 0 ? '<span class="alert">(przekroczono!)</span>' : ''}</p>`;
+            let html = `<h3>Załadowano: ${loadedS} S + ${loadedW} W</h3>`;
+            html += `<p><strong>Zajęte:</strong> ${occupied.toFixed(2)} m &nbsp;&nbsp; <strong>Wolne:</strong> ${free.toFixed(2)} m</p>`;
+            html += `<p><strong>Zapełnienie naczepy:</strong> ${fillPercent}%</p>`;
 
-            html += '<p><strong>Liczba układów:</strong></p>';
-            html += `<div class="section">Trójki S: ${bestTrio}</div>`;
-            html += `<div class="section">Dwójki S: ${bestDuo}</div>`;
-            html += `<div class="section">Jedynki S: ${bestSingle}</div>`;
-            html += `<div class="section">Pary W: ${fullWpairs}</div>`;
-            html += `<div class="section">Mieszane dwójki: ${mixed ? 1 : 0}</div>`;
+            html += '<p><strong>Układ od przodu do tyłu:</strong></p>';
+            rows.forEach(r => {
+                let txt = '';
+                if (r.type === 'S-single') txt = `${r.count} × jedynka S`;
+                else if (r.type === 'W-pair') txt = `${r.count} × para W`;
+                else if (r.type === 'mixed') txt = `1 × mieszana (W+S)`;
+                else if (r.type === 'S-duo') txt = `${r.count} × dwójka S`;
+                else if (r.type === 'S-trio') txt = `${r.count} × trójka S`;
+                html += `<div class="section">${txt} (${r.length} m na rząd)</div>`;
+            });
 
-            if (sections.length > 0) {
-                html += '<p><strong>Układ od przodu:</strong></p>';
-                sections.forEach(s => html += `<div class="section">${s}</div>`);
+            if (totalW > 0 || totalS > 0) {
+                html += `<p class="alert">Nie załadowano: ${totalS} S + ${totalW} W (brak miejsca / pary)</p>`;
             }
 
-            if (leftoverW === 1) {
-                html += '<p class="alert">Została 1 W – nie załadowana (brak pary i S do mieszanki)</p>';
-            }
-
-            html += '<h4>Schemat naczepy – pionowo (przód na górze)</h4>';
-            html += '<canvas id="schemat" width="340" height="620"></canvas>';
-            html += '<p class="info">Każdy prostokąt = jedna paleta • Niebieski = W • Zielony = S trójka • Żółty = S dwójka • Pomarańczowy = S jedynka • Fiolet = mieszana • Szary = wolne</p>';
+            html += '<h4>Schemat naczepy – każda paleta to osobny prostokąt</h4>';
+            html += '<canvas id="schemat" width="380" height="720"></canvas>';
+            html += '<p class="info">Niebieski = W • Pomarańcz = S jedynka • Żółty = S dwójka • Zielony = S trójka • Fiolet/turkus = mieszana W+S • Szary = wolne miejsce</p>';
 
             document.getElementById('wynik').innerHTML = html;
 
-            // Rysowanie schematu
+            // Rysowanie schematu – KAŻDA paleta osobno
             const canvas = document.getElementById('schemat');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
 
-            const scaleY = (canvas.height - 60) / TOTAL_LENGTH;
-            const leftMargin = 50;
-            const rightMargin = 50;
-            const fullWidth = canvas.width - leftMargin - rightMargin;
+            const scaleY = (canvas.height - 80) / L;
+            const left = 70;
+            const fullW = canvas.width - 140;
+            let y = 40;
 
-            let y = 30;
+            // Tło naczepy
+            ctx.fillStyle = '#e9ecef';
+            ctx.fillRect(left, 40, fullW, canvas.height - 80);
 
-            ctx.fillStyle = '#e8ecef';
-            ctx.fillRect(leftMargin, 30, fullWidth, canvas.height - 60);
-
-            ctx.strokeStyle = '#ccc';
+            // Linie metrowe
+            ctx.strokeStyle = '#dee2e6';
             ctx.lineWidth = 1;
-            for (let m = 1; m < TOTAL_LENGTH; m++) {
-                let yy = 30 + m * scaleY;
+            for (let m = 1; m < L; m++) {
+                let yy = 40 + m * scaleY;
                 ctx.beginPath();
-                ctx.moveTo(leftMargin, yy);
-                ctx.lineTo(canvas.width - rightMargin, yy);
+                ctx.moveTo(left, yy);
+                ctx.lineTo(left + fullW, yy);
                 ctx.stroke();
             }
 
             rows.forEach(row => {
-                const rowHeight = row.length * scaleY;
-                const paletWidth = fullWidth / row.paletsPerRow;
+                const rowH = row.length * scaleY;
 
-                for (let i = 0; i < row.paletsPerRow; i++) {
-                    let palX = leftMargin + i * paletWidth;
-                    let palY = y;
-                    let palH = rowHeight;
-
-                    let fillColor;
-                    if (row.type === 'W-pair') {
-                        fillColor = '#007bff'; // niebieski W
-                    } else if (row.type === 'mixed') {
-                        fillColor = i === 0 ? '#6f42c1' : '#20c997'; // fiolet W, turkus S
-                    } else if (row.type === 'S-duo') {
-                        fillColor = '#ffc107'; // żółty dwójka S
-                    } else if (row.type === 'S-trio') {
-                        fillColor = '#28a745'; // zielony trójka S
-                    } else if (row.type === 'S-single') {
-                        fillColor = '#fd7e14'; // pomarańczowy jedynka S
+                if (row.type === 'S-single') {
+                    const palW = fullW;
+                    for (let i = 0; i < row.count; i++) {
+                        drawPaleta(ctx, left, y + i * rowH, palW, rowH, '#fd7e14', 'S');
                     }
-
-                    ctx.fillStyle = fillColor;
-                    ctx.fillRect(palX, palY, paletWidth, palH);
-
-                    ctx.strokeStyle = '#333';
-                    ctx.lineWidth = 1.5;
-                    ctx.strokeRect(palX, palY, paletWidth, palH);
-
-                    ctx.fillStyle = '#fff';
-                    ctx.font = 'bold 11px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(row.paletType.split(' ')[i] || row.paletType, palX + paletWidth/2, palY + palH/2);
+                    y += row.count * rowH;
                 }
-
-                y += rowHeight;
+                else if (row.type === 'W-pair' || row.type === 'S-duo') {
+                    const palW = fullW / 2;
+                    const color = row.type === 'W-pair' ? '#007bff' : '#ffc107';
+                    const label = row.type === 'W-pair' ? 'W' : 'S';
+                    for (let i = 0; i < row.count; i++) {
+                        drawPaleta(ctx, left,           y + i * rowH, palW, rowH, color, label);
+                        drawPaleta(ctx, left + palW,    y + i * rowH, palW, rowH, color, label);
+                    }
+                    y += row.count * rowH;
+                }
+                else if (row.type === 'S-trio') {
+                    const palW = fullW / 3;
+                    for (let i = 0; i < row.count; i++) {
+                        drawPaleta(ctx, left,             y + i * rowH, palW, rowH, '#28a745', 'S');
+                        drawPaleta(ctx, left + palW,      y + i * rowH, palW, rowH, '#28a745', 'S');
+                        drawPaleta(ctx, left + 2 * palW,  y + i * rowH, palW, rowH, '#28a745', 'S');
+                    }
+                    y += row.count * rowH;
+                }
+                else if (row.type === 'mixed') {
+                    const palW = fullW / 2;
+                    drawPaleta(ctx, left,         y, palW, rowH, '#6f42c1', 'W');
+                    drawPaleta(ctx, left + palW,  y, palW, rowH, '#20c997', 'S');
+                    y += rowH;
+                }
             });
 
-            if (y < canvas.height - 30) {
-                ctx.fillStyle = '#adb5bd';
-                ctx.fillRect(leftMargin, y, fullWidth, canvas.height - 30 - y);
-                ctx.fillStyle = '#495057';
-                ctx.font = '14px Arial';
+            // Wolne miejsce
+            if (y < canvas.height - 40) {
+                ctx.fillStyle = '#ced4da';
+                ctx.fillRect(left, y, fullW, canvas.height - 40 - y);
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '15px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText('WOLNE MIEJSCE', canvas.width/2, y + (canvas.height - 30 - y)/2);
+                ctx.fillText('WOLNE MIEJSCE', canvas.width / 2, y + (canvas.height - 40 - y) / 2);
             }
 
+            // Napisy PRZÓD / TYŁ
             ctx.fillStyle = '#212529';
-            ctx.font = 'bold 16px Arial';
+            ctx.font = 'bold 17px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('PRZÓD naczepy', canvas.width/2, 18);
-            ctx.fillText('TYŁ naczepy', canvas.width/2, canvas.height - 8);
+            ctx.fillText('PRZÓD naczepy', canvas.width / 2, 25);
+            ctx.fillText('TYŁ naczepy', canvas.width / 2, canvas.height - 15);
         });
+
+        function drawPaleta(ctx, x, y, w, h, color, label) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = '#343a40';
+            ctx.lineWidth = 1.8;
+            ctx.strokeRect(x, y, w, h);
+            ctx.fillStyle = (color === '#007bff' || color === '#28a745' || color === '#6f42c1') ? '#ffffff' : '#212529';
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, x + w / 2, y + h / 2);
+        }
     </script>
 </body>
 </html>
