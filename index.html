@@ -5,106 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kalkulator Palet – Naczepa 13,6 m</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 760px;
-            margin: 30px auto;
-            padding: 20px;
-            background: #f8f9fa;
-            color: #212529;
-        }
-        h1 {
-            color: #c82333;
-            text-align: center;
-        }
-        .opis {
-            background: #fff3cd;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            line-height: 1.6;
-            border-left: 5px solid #ffc107;
-        }
-        form {
-            background: white;
-            padding: 28px;
-            border-radius: 10px;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-        }
-        label {
-            font-weight: bold;
-            display: block;
-            margin: 18px 0 8px;
-            font-size: 1.05em;
-        }
-        input {
-            width: 100%;
-            padding: 13px;
-            font-size: 17px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 22px;
-        }
-        button:hover {
-            background: #218838;
-        }
-        #wynik {
-            margin-top: 35px;
-            padding: 25px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-            line-height: 1.65;
-        }
-        .stat {
-            margin: 8px 0;
-            padding: 10px 14px;
-            background: #f1f3f5;
-            border-radius: 6px;
-            border-left: 4px solid #007bff;
-        }
-        .alert {
-            color: #dc3545;
-            font-weight: bold;
-            margin: 12px 0;
-        }
-        #schemat {
-            border: 1px solid #adb5bd;
-            background: #f8f9fa;
-            margin-top: 25px;
-            display: block;
-            width: 100%;
-            height: 780px;
-            border-radius: 6px;
-        }
+        body { font-family: Arial, sans-serif; max-width: 760px; margin: 30px auto; padding: 20px; background: #f8f9fa; }
+        h1 { color: #c82333; text-align: center; }
+        .opis { background: #fff3cd; padding: 16px; border-radius: 8px; margin-bottom: 25px; line-height: 1.6; }
+        form { background: white; padding: 28px; border-radius: 10px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
+        label { font-weight: bold; display: block; margin: 18px 0 8px; font-size: 1.05em; }
+        input { width: 100%; padding: 13px; font-size: 17px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; font-size: 18px; background: #28a745; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 22px; }
+        button:hover { background: #218838; }
+        #wynik { margin-top: 35px; padding: 25px; background: white; border-radius: 10px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); line-height: 1.65; }
+        .stat { margin: 8px 0; padding: 10px 14px; background: #f1f3f5; border-radius: 6px; border-left: 4px solid #007bff; }
+        .alert { color: #dc3545; font-weight: bold; margin: 12px 0; }
+        #schemat { border: 1px solid #adb5bd; background: #f8f9fa; margin-top: 25px; display: block; width: 100%; height: 800px; border-radius: 6px; }
     </style>
 </head>
 <body>
     <h1>Kalkulator Palet – Naczepa 13,6 m</h1>
 
     <div class="opis">
-        <strong>Wpisz np.:</strong> 18s<br>
-        <strong>lub</strong> 12s 8w<br>
-        <strong>lub</strong> 5s i 3w<br><br>
-        Kolejność ładowania: <strong>jedynki S → pary W → mieszana (jeśli potrzeba) → dwójki S → trójki S</strong><br>
-        Na schemacie <strong>każda paleta = osobny prostokąt</strong> (18 palet = 18 prostokątów)
+        <strong>Wpisz np.:</strong> 20s 3w<br>
+        Program szuka układu, w którym wchodzą WSZYSTKIE palety (lub max ile się da).<br>
+        Jedynki S tylko tyle, ile trzeba – żeby reszta była ładnie rozłożona (jak w Twoim przykładzie: 10 jedynek + W + mieszana + 3 trójki).
     </div>
 
     <form id="form">
-        <label>Ilość palet (np. 18s lub 12s 8w):</label>
-        <input type="text" id="ilosc" placeholder="18s" required autofocus>
+        <label>Ilość palet (np. 20s 3w):</label>
+        <input type="text" id="ilosc" placeholder="20s 3w" required autofocus>
 
         <button type="submit">Oblicz układ</button>
     </form>
@@ -118,10 +44,8 @@
             const input = document.getElementById('ilosc').value.toLowerCase().replace(/i/g, '').replace(/\s+/g, ' ');
             const sMatch = input.match(/(\d+)\s*s/);
             const wMatch = input.match(/(\d+)\s*w/);
-            let totalS = sMatch ? parseInt(sMatch[1]) : 0;
-            let totalW = wMatch ? parseInt(wMatch[1]) : 0;
-
-            if (totalS === 0 && totalW === 0) return;
+            let wantS = sMatch ? parseInt(sMatch[1]) : 0;
+            let wantW = wMatch ? parseInt(wMatch[1]) : 0;
 
             const L = 13.6;
             const LEN_W_PAIR   = 1.0;
@@ -130,92 +54,94 @@
             const LEN_S_SINGLE = 0.8;
             const LEN_MIX      = 0.8;
 
-            let rows = [];
-            let occupied = 0;
-            let loadedS = 0;
-            let loadedW = 0;
-            let stats = { single: 0, wPair: 0, mixed: 0, duoS: 0, trioS: 0 };
+            let best = {
+                totalLoaded: 0,
+                occupied: 0,
+                rows: [],
+                stats: {single:0, wPair:0, mixed:0, duoS:0, trioS:0},
+                leftoverS: wantS,
+                leftoverW: wantW
+            };
 
-            // 1. Jedynki S – zawsze pierwsze (z przodu)
-            let maxSingles = Math.floor(L / LEN_S_SINGLE); // ~17
-            let singles = Math.min(totalS, maxSingles);
-            if (singles > 0) {
-                occupied += singles * LEN_S_SINGLE;
-                rows.push({ type: 'S-single', length: LEN_S_SINGLE, count: singles });
-                stats.single = singles;
-                loadedS += singles;
-                totalS -= singles;
-            }
+            // Szukamy kombinacji, w której wchodzą wszystkie palety (lub max)
+            for (let singles = 0; singles <= 12; singles++) {  // do 12 jedynek – więcej to już bez sensu
+                let occ = singles * LEN_S_SINGLE;
+                let remL = L - occ;
+                if (remL < 0) continue;
 
-            // 2. Pary W
-            let fullWPairs = Math.floor(totalW / 2);
-            let wSpace = fullWPairs * LEN_W_PAIR;
-            if (fullWPairs > 0 && occupied + wSpace <= L) {
-                occupied += wSpace;
-                rows.push({ type: 'W-pair', length: LEN_W_PAIR, count: fullWPairs });
-                stats.wPair = fullWPairs;
-                loadedW += fullWPairs * 2;
-                totalW -= fullWPairs * 2;
-            }
+                let remS = wantS - singles;
+                if (remS < 0) continue;
 
-            // 3. Mieszana (jeśli została 1 W i jest S)
-            let mixed = false;
-            if (totalW === 1 && totalS >= 1 && occupied + LEN_MIX <= L) {
-                mixed = true;
-                occupied += LEN_MIX;
-                rows.push({ type: 'mixed', length: LEN_MIX, count: 1 });
-                stats.mixed = 1;
-                loadedW += 1;
-                loadedS += 1;
-                totalS -= 1;
-                totalW = 0;
-            }
+                let maxPairs = Math.floor(wantW / 2);
+                let pairs = Math.min(maxPairs, Math.floor(remL / LEN_W_PAIR));
+                occ += pairs * LEN_W_PAIR;
+                remL = L - occ;
 
-            // 4. Reszta S – max wypełnienie (trójki > dwójki)
-            let remLen = L - occupied;
-            let bestT = 0, bestD = 0, bestLen = 0;
+                let remW = wantW - pairs * 2;
 
-            for (let t = Math.floor(totalS / 3); t >= 0; t--) {
-                let remPal = totalS - t * 3;
-                let d = Math.floor(remPal / 2);
-                let len = t * LEN_S_TRIO + d * LEN_S_DUO;
-                if (len <= remLen && len > bestLen) {
-                    bestLen = len;
-                    bestT = t;
-                    bestD = d;
+                let mix = 0;
+                if (remW === 1 && remS >= 1 && remL >= LEN_MIX) {
+                    mix = 1;
+                    occ += LEN_MIX;
+                    remL = L - occ;
+                    remS -= 1;
+                    remW = 0;
+                }
+
+                let trio = Math.floor(remS / 3);
+                let duo = Math.floor((remS - trio * 3) / 2);
+                let lenS = trio * LEN_S_TRIO + duo * LEN_S_DUO;
+                if (lenS > remL) {
+                    // Jeśli nie wejdzie – zmniejszamy trójki/dwójki, aż wejdzie
+                    for (let t = trio; t >= 0; t--) {
+                        let r = remS - t * 3;
+                        let d = Math.floor(r / 2);
+                        let l = t * LEN_S_TRIO + d * LEN_S_DUO;
+                        if (l <= remL) {
+                            lenS = l;
+                            trio = t;
+                            duo = d;
+                            break;
+                        }
+                    }
+                }
+
+                occ += lenS;
+
+                let loaded = singles + pairs * 2 + mix * 2 + trio * 3 + duo * 2;
+                if (loaded > best.totalLoaded) {
+                    best = {
+                        totalLoaded: loaded,
+                        occupied: occ,
+                        rows: [],
+                        stats: {single: singles, wPair: pairs, mixed: mix, duoS: duo, trioS: trio},
+                        leftoverS: wantS - (singles + mix + trio*3 + duo*2),
+                        leftoverW: remW
+                    };
+
+                    if (singles > 0) best.rows.push({type: 'S-single', length: LEN_S_SINGLE, count: singles});
+                    if (pairs > 0) best.rows.push({type: 'W-pair', length: LEN_W_PAIR, count: pairs});
+                    if (mix > 0) best.rows.push({type: 'mixed', length: LEN_MIX, count: 1});
+                    if (duo > 0) best.rows.push({type: 'S-duo', length: LEN_S_DUO, count: duo});
+                    if (trio > 0) best.rows.push({type: 'S-trio', length: LEN_S_TRIO, count: trio});
                 }
             }
 
-            if (bestLen > 0) {
-                occupied += bestLen;
-                if (bestD > 0) {
-                    rows.push({ type: 'S-duo', length: LEN_S_DUO, count: bestD });
-                    stats.duoS = bestD;
-                    loadedS += bestD * 2;
-                }
-                if (bestT > 0) {
-                    rows.push({ type: 'S-trio', length: LEN_S_TRIO, count: bestT });
-                    stats.trioS = bestT;
-                    loadedS += bestT * 3;
-                }
-            }
+            let fillPercent = Math.round((best.occupied / L) * 100);
 
-            let free = L - occupied;
-            let fillPercent = Math.round((occupied / L) * 100);
-
-            let html = `<h3>Załadowano: ${loadedS} S + ${loadedW} W</h3>`;
-            html += `<p><strong>Zajęte:</strong> ${occupied.toFixed(2)} m &nbsp; <strong>Wolne:</strong> ${free.toFixed(2)} m</p>`;
+            let html = `<h3>Załadowano: ${best.totalLoaded} palet (${best.stats.single + best.stats.mixed + best.stats.duoS*2 + best.stats.trioS*3} S + ${best.stats.wPair*2 + best.stats.mixed} W)</h3>`;
+            html += `<p><strong>Zajęte:</strong> ${best.occupied.toFixed(2)} m &nbsp; <strong>Wolne:</strong> ${(L - best.occupied).toFixed(2)} m</p>`;
             html += `<p><strong>Zapełnienie:</strong> ${fillPercent}%</p>`;
 
-            html += '<p><strong>Liczba układów (kolejność od przodu):</strong></p>';
-            html += `<div class="stat">Jedynki S: ${stats.single}</div>`;
-            html += `<div class="stat">Pary W: ${stats.wPair}</div>`;
-            html += `<div class="stat">Mieszane dwójki: ${stats.mixed}</div>`;
-            html += `<div class="stat">Dwójki S: ${stats.duoS}</div>`;
-            html += `<div class="stat">Trójki S: ${stats.trioS}</div>`;
+            html += '<p><strong>Liczba układów (od przodu):</strong></p>';
+            html += `<div class="stat">Jedynki S: ${best.stats.single}</div>`;
+            html += `<div class="stat">Pary W: ${best.stats.wPair}</div>`;
+            html += `<div class="stat">Mieszane dwójki: ${best.stats.mixed}</div>`;
+            html += `<div class="stat">Dwójki S: ${best.stats.duoS}</div>`;
+            html += `<div class="stat">Trójki S: ${best.stats.trioS}</div>`;
 
             html += '<p><strong>Układ od przodu do tyłu:</strong></p>';
-            rows.forEach(r => {
+            best.rows.forEach(r => {
                 let txt = '';
                 if (r.type === 'S-single') txt = `${r.count} × jedynka S`;
                 else if (r.type === 'W-pair') txt = `${r.count} × para W`;
@@ -225,17 +151,17 @@
                 html += `<div class="section">${txt} (${r.length} m / rząd)</div>`;
             });
 
-            if (totalW > 0 || totalS > 0) {
-                html += `<p class="alert">Nie załadowano: ${totalS} S + ${totalW} W (brak miejsca / pary)</p>`;
+            if (best.leftoverS > 0 || best.leftoverW > 0) {
+                html += `<p class="alert">Nie załadowano: ${best.leftoverS} S + ${best.leftoverW} W</p>`;
             }
 
-            html += '<h4>Schemat naczepy – każda paleta to osobny prostokąt</h4>';
+            html += '<h4>Schemat naczepy – każda paleta osobno</h4>';
             html += '<canvas id="schemat" width="400" height="800"></canvas>';
             html += '<p class="info">Niebieski = W • Pomarańcz = S jedynka • Żółty = S dwójka • Zielony = S trójka • Fiolet/turkus = mieszana • Szary = wolne</p>';
 
             document.getElementById('wynik').innerHTML = html;
 
-            // Rysowanie – KAŻDA paleta osobny prostokąt
+            // Rysowanie
             const canvas = document.getElementById('schemat');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
@@ -258,7 +184,7 @@
                 ctx.stroke();
             }
 
-            rows.forEach(row => {
+            best.rows.forEach(row => {
                 const rowH = row.length * scaleY;
 
                 if (row.type === 'S-single') {
