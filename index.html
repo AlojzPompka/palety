@@ -1,164 +1,73 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-<meta charset="UTF-8">
-<title>Kalkulator załadunku naczepy</title>
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    text-align: center;
-}
-
-.container {
-    width: 700px;
-    margin: 50px auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-input {
-    display: block;
-    margin: 10px auto;
-    padding: 8px;
-    width: 50%;
-}
-
-button {
-    padding: 10px 20px;
-    background: #2c7be5;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #1a5fc1;
-}
-
-/* Wizualizacja naczepy */
-#truck {
-    position: relative;
-    margin: 20px auto;
-    width: 680px; /* 1360 cm / 2 */
-    height: 125px; /* 250 cm / 2 */
-    background: #ddd;
-    border: 2px solid #999;
-}
-
-.pallet {
-    position: absolute;
-    border: 1px solid #444;
-    box-sizing: border-box;
-    text-align: center;
-    font-size: 10px;
-    color: white;
-    line-height: 1;
-}
-
-.pallet.euro { background: #2c7be5; }
-.pallet.w120 { background: #e52c2c; }
-</style>
-</head>
-<body>
-<div class="container">
-    <h1>Kalkulator załadunku naczepy</h1>
-
-    <label>Ilość palet EURO:</label>
-    <input type="number" id="euro" placeholder="np. 19">
-
-    <label>Ilość palet W 120x100:</label>
-    <input type="number" id="w120" placeholder="np. 20">
-
-    <button onclick="calculate()">Oblicz</button>
-
-    <h2>Wynik:</h2>
-    <div id="result"></div>
-
-    <h2>Wizualizacja naczepy:</h2>
-    <div id="truck"></div>
-</div>
-
-<script>
 function calculate() {
-    const euroCount = parseInt(document.getElementById("euro").value) || 0;
-    const wCount = parseInt(document.getElementById("w120").value) || 0;
+    const euroTotal = parseInt(document.getElementById("euro").value) || 0;
+    const wTotal = parseInt(document.getElementById("w120").value) || 0;
 
     const truckLength = 1360; // cm
-    const truckWidth = 250;   // cm
 
-    // --- EURO ---
-    let euroRemaining = euroCount;
-    let euroUnits = 0; // jedynki w osi
+    let euroRemaining = euroTotal;
+    let wRemaining = wTotal;
+
+    // --- EURO jedynki w osi ---
+    let euroUnits = Math.min(17, euroRemaining);
+    let usedLength = euroUnits * 80;
+    euroRemaining -= euroUnits;
+
     let euroRows3 = 0;
     let euroRows2 = 0;
 
-    // maks 17 jedynek
-    let maxOnAxis = Math.min(17, euroRemaining);
-    euroUnits = maxOnAxis;
-    euroRemaining -= euroUnits;
-
-    // dopasowanie rzędów od tyłu
+    // --- Dopasowanie EURO do tyłu ---
     while (euroRemaining > 0) {
-        if (euroRemaining >= 3) {
+        if (euroRemaining >= 3 && usedLength + 120 <= truckLength) {
             euroRows3++;
-            euroRemaining -=3;
-            // jeśli rząd 3 nie mieści się w długości, zmniejszamy jedynki
-            while ((euroUnits*80 + euroRows3*120) > truckLength) {
-                euroUnits--;
-            }
-        } else if (euroRemaining == 2) {
+            euroRemaining -= 3;
+            usedLength += 120;
+        } else if (euroRemaining >=2 && usedLength + 80 <= truckLength) {
             euroRows2++;
             euroRemaining -=2;
-            while ((euroUnits*80 + euroRows2*80 + euroRows3*120) > truckLength) {
-                euroUnits--;
-            }
+            usedLength += 80;
         } else {
-            // zostanie 1 → zamieniamy jedynkę na rząd 2
-            if (euroUnits>0) {
-                euroUnits--;
-                euroRows2++;
-                euroRemaining = 0;
-            }
+            break; // nie mieści się więcej EURO
         }
     }
 
     // --- W 120x100 ---
-    let wRemaining = wCount;
-    let wUnits = Math.min(13, wRemaining);
-    wRemaining -= wUnits;
+    let wUnits = 0;
     let wPairs = 0;
-    while (wRemaining >0) {
-        wPairs++;
-        wRemaining -=2;
-        while ((wUnits*100 + wPairs*100) > truckLength) {
-            wUnits--;
+
+    while (wRemaining > 0) {
+        if (wRemaining >= 2 && usedLength + 100 <= truckLength) {
+            wPairs++;
+            wRemaining -=2;
+            usedLength += 100;
+        } else if (wRemaining >=1 && usedLength + 100 <= truckLength) {
+            wUnits++;
+            wRemaining -=1;
+            usedLength += 100;
+        } else {
+            break; // nie mieści się więcej W
         }
     }
 
-    // --- Wyświetlenie wyników ---
     document.getElementById("result").innerHTML =
-        `EURO: ${euroUnits} jedynki, ${euroRows3} rzędy 3, ${euroRows2} rzędy 2<br>`+
-        `W 120x100: ${wUnits} jedynki, ${wPairs} pary`;
+        `EURO: ${euroUnits} jedynki, ${euroRows3} rzędy 3, ${euroRows2} rzędy 2<br>` +
+        `W 120x100: ${wUnits} jedynki, ${wPairs} pary<br>` +
+        `Zajęta długość: ${usedLength} / 1360 cm`;
 
-    drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs);
+    drawTruckMixed(euroUnits, euroRows3, euroRows2, wUnits, wPairs);
 }
 
-// --- Wizualizacja ---
-function drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs) {
+// Wizualizacja mieszana
+function drawTruckMixed(euroUnits, euroRows3, euroRows2, wUnits, wPairs){
     const truck = document.getElementById("truck");
-    truck.innerHTML = ""; // czyszczenie
-
-    const scale = 0.5; // cm -> px
-    const truckLengthPx = 1360 * scale;
-    const truckWidthPx = 250 * scale;
-
+    truck.innerHTML="";
+    const scale = 0.5;
+    const truckWidthPx = 250*scale;
     let x = 0;
 
-    // --- EURO jedynki w osi ---
-    const euroY = (truckWidthPx - 80*scale)/2; // wyśrodkowane w osi
+    const euroY = (truckWidthPx - 80*scale)/2;
+    const wY = (truckWidthPx - 100*scale)/2 + 20;
+
+    // EURO jedynki
     for(let i=0;i<euroUnits;i++){
         const div = document.createElement("div");
         div.className="pallet euro";
@@ -171,7 +80,7 @@ function drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs) {
         x+=80;
     }
 
-    // --- EURO rzędy 3 ---
+    // EURO rzędy 3
     for(let i=0;i<euroRows3;i++){
         for(let j=0;j<3;j++){
             const div = document.createElement("div");
@@ -186,7 +95,7 @@ function drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs) {
         x+=120;
     }
 
-    // --- EURO rzędy 2 ---
+    // EURO rzędy 2
     for(let i=0;i<euroRows2;i++){
         for(let j=0;j<2;j++){
             const div = document.createElement("div");
@@ -201,8 +110,7 @@ function drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs) {
         x+=80;
     }
 
-    // --- W 120x100 jedynki ---
-    const wY = (truckWidthPx - 100*scale)/2 + 20; // przesunięcie w pionie
+    // W jedynki
     for(let i=0;i<wUnits;i++){
         const div = document.createElement("div");
         div.className="pallet w120";
@@ -215,7 +123,7 @@ function drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs) {
         x+=100;
     }
 
-    // --- W pary ---
+    // W pary
     for(let i=0;i<wPairs;i++){
         for(let j=0;j<2;j++){
             const div = document.createElement("div");
@@ -230,6 +138,3 @@ function drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs) {
         x+=100;
     }
 }
-</script>
-</body>
-</html>
