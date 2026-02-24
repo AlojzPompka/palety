@@ -5,7 +5,7 @@
 <title>Kalkulator załadunku naczepy</title>
 <style>
 body {
-    font-family: Arial, sans-serif;
+    font-family: Arial;
     background:#f4f4f4;
     text-align:center;
     margin:0;
@@ -63,9 +63,9 @@ button:hover { background:#1a5fc1; }
 <div class="container">
 <h1>Kalkulator załadunku naczepy</h1>
 <label>Ilość palet EURO:</label>
-<input type="number" id="euro" placeholder="np. 19">
+<input type="number" id="euro" placeholder="np. 26">
 <label>Ilość palet W 120x100:</label>
-<input type="number" id="w120" placeholder="np. 20">
+<input type="number" id="w120" placeholder="np. 6">
 <button onclick="calculate()">Oblicz</button>
 
 <h2>Wynik:</h2>
@@ -85,39 +85,48 @@ function calculate() {
     const euroTotal = parseInt(document.getElementById("euro").value)||0;
     const wTotal = parseInt(document.getElementById("w120").value)||0;
     const truckLength = 1360; // cm
-    let euroRem = euroTotal;
-    let wRem = wTotal;
-    let usedLength = 0;
 
-    // Maks jedynki EURO w osi
-    let euroUnits = Math.min(17, euroRem);
-    euroRem -= euroUnits;
-    usedLength = euroUnits*80;
+    // --- Dynamiczne dopasowanie jedynek w osi ---
+    let maxUnits = euroTotal; // maks ile może być jedynek
+    let bestConfig = null;
 
-    let euroRows3 = 0;
-    let euroRows2 = 0;
+    for(let units = Math.min(17,euroTotal); units>=0; units--){
+        let euroRem = euroTotal - units;
+        let wRem = wTotal;
+        let lengthUsed = units*80;
 
-    while(euroRem>0){
-        if(euroRem>=3 && usedLength+120<=truckLength){ euroRows3++; euroRem-=3; usedLength+=120; }
-        else if(euroRem>=2 && usedLength+80<=truckLength){ euroRows2++; euroRem-=2; usedLength+=80; }
-        else{ break; }
+        let rows3 = 0, rows2 = 0;
+        while(euroRem>0){
+            if(euroRem>=3 && lengthUsed+120<=truckLength){ rows3++; euroRem-=3; lengthUsed+=120; }
+            else if(euroRem>=2 && lengthUsed+80<=truckLength){ rows2++; euroRem-=2; lengthUsed+=80; }
+            else{ break; }
+        }
+
+        let wUnits=0, wPairs=0;
+        while(wRem>0){
+            if(wRem>=2 && lengthUsed+100<=truckLength){ wPairs++; wRem-=2; lengthUsed+=100; }
+            else if(wRem>=1 && lengthUsed+100<=truckLength){ wUnits++; wRem-=1; lengthUsed+=100; }
+            else{ break; }
+        }
+
+        if(euroRem===0 && wRem===0){
+            bestConfig={units, rows3, rows2, wUnits, wPairs, lengthUsed};
+            break; // znaleziono konfigurację gdzie wszystkie mieszczą się
+        }
     }
 
-    // W 120x100
-    let wUnits = 0;
-    let wPairs = 0;
-    while(wRem>0){
-        if(wRem>=2 && usedLength+100<=truckLength){ wPairs++; wRem-=2; usedLength+=100; }
-        else if(wRem>=1 && usedLength+100<=truckLength){ wUnits++; wRem-=1; usedLength+=100; }
-        else{ break; }
+    if(!bestConfig){
+        document.getElementById("result").innerHTML = "Nie da się zmieścić wszystkich palet w naczepie!";
+        document.getElementById("truck").innerHTML="";
+        return;
     }
 
     document.getElementById("result").innerHTML =
-        `EURO: ${euroUnits} jedynki, ${euroRows3} rzędy 3, ${euroRows2} rzędy 2<br>`+
-        `W 120x100: ${wUnits} jedynki, ${wPairs} pary<br>`+
-        `Zajęta długość: ${usedLength} / 1360 cm`;
+        `EURO: ${bestConfig.units} jedynki, ${bestConfig.rows3} rzędy 3, ${bestConfig.rows2} rzędy 2<br>`+
+        `W 120x100: ${bestConfig.wUnits} jedynki, ${bestConfig.wPairs} pary<br>`+
+        `Zajęta długość: ${bestConfig.lengthUsed} / 1360 cm`;
 
-    drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs);
+    drawTruck(bestConfig.units,bestConfig.rows3,bestConfig.rows2,bestConfig.wUnits,bestConfig.wPairs);
 }
 
 // Wizualizacja z realistycznym rzędem 2 i 3
