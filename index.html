@@ -1,254 +1,235 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator Palet – Naczepa 13,6 m</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 760px; margin: 30px auto; padding: 20px; background: #f8f9fa; }
-        h1 { color: #c82333; text-align: center; }
-        .opis { background: #fff3cd; padding: 16px; border-radius: 8px; margin-bottom: 25px; line-height: 1.6; }
-        form { background: white; padding: 28px; border-radius: 10px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
-        label { font-weight: bold; display: block; margin: 18px 0 8px; font-size: 1.05em; }
-        input { width: 100%; padding: 13px; font-size: 17px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; font-size: 18px; background: #28a745; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 22px; }
-        button:hover { background: #218838; }
-        #wynik { margin-top: 35px; padding: 25px; background: white; border-radius: 10px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); line-height: 1.65; }
-        .stat { margin: 8px 0; padding: 10px 14px; background: #f1f3f5; border-radius: 6px; border-left: 4px solid #007bff; }
-        .alert { color: #dc3545; font-weight: bold; margin: 12px 0; }
-        #schemat { border: 1px solid #adb5bd; background: #f8f9fa; margin-top: 25px; display: block; width: 100%; height: 800px; border-radius: 6px; }
-    </style>
+<meta charset="UTF-8">
+<title>Kalkulator załadunku naczepy</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    text-align: center;
+}
+
+.container {
+    width: 700px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+input {
+    display: block;
+    margin: 10px auto;
+    padding: 8px;
+    width: 50%;
+}
+
+button {
+    padding: 10px 20px;
+    background: #2c7be5;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1a5fc1;
+}
+
+/* Wizualizacja naczepy */
+#truck {
+    position: relative;
+    margin: 20px auto;
+    width: 680px; /* 1360 cm / 2 */
+    height: 125px; /* 250 cm / 2 */
+    background: #ddd;
+    border: 2px solid #999;
+}
+
+.pallet {
+    position: absolute;
+    border: 1px solid #444;
+    box-sizing: border-box;
+    text-align: center;
+    font-size: 10px;
+    color: white;
+    line-height: 1;
+}
+
+.pallet.euro { background: #2c7be5; }
+.pallet.w120 { background: #e52c2c; }
+</style>
 </head>
 <body>
-    <h1>Kalkulator Palet – Naczepa 13,6 m</h1>
+<div class="container">
+    <h1>Kalkulator załadunku naczepy</h1>
 
-    <div class="opis">
-        <strong>Wpisz np.:</strong> 20s 3w<br>
-        Program szuka układu, w którym wchodzą WSZYSTKIE palety (lub max ile się da).<br>
-        Jedynki S tylko tyle, ile trzeba – żeby reszta była ładnie rozłożona (jak w Twoim przykładzie: 10 jedynek + W + mieszana + 3 trójki).
-    </div>
+    <label>Ilość palet EURO:</label>
+    <input type="number" id="euro" placeholder="np. 19">
 
-    <form id="form">
-        <label>Ilość palet (np. 20s 3w):</label>
-        <input type="text" id="ilosc" placeholder="20s 3w" required autofocus>
+    <label>Ilość palet W 120x100:</label>
+    <input type="number" id="w120" placeholder="np. 20">
 
-        <button type="submit">Oblicz układ</button>
-    </form>
+    <button onclick="calculate()">Oblicz</button>
 
-    <div id="wynik"></div>
+    <h2>Wynik:</h2>
+    <div id="result"></div>
 
-    <script>
-        document.getElementById('form').addEventListener('submit', e => {
-            e.preventDefault();
+    <h2>Wizualizacja naczepy:</h2>
+    <div id="truck"></div>
+</div>
 
-            const input = document.getElementById('ilosc').value.toLowerCase().replace(/i/g, '').replace(/\s+/g, ' ');
-            const sMatch = input.match(/(\d+)\s*s/);
-            const wMatch = input.match(/(\d+)\s*w/);
-            let wantS = sMatch ? parseInt(sMatch[1]) : 0;
-            let wantW = wMatch ? parseInt(wMatch[1]) : 0;
+<script>
+function calculate() {
+    const euroCount = parseInt(document.getElementById("euro").value) || 0;
+    const wCount = parseInt(document.getElementById("w120").value) || 0;
 
-            const L = 13.6;
-            const LEN_W_PAIR   = 1.0;
-            const LEN_S_TRIO   = 1.2;
-            const LEN_S_DUO    = 0.8;
-            const LEN_S_SINGLE = 0.8;
-            const LEN_MIX      = 0.8;
+    const truckLength = 1360; // cm
+    const truckWidth = 250;   // cm
 
-            let best = {
-                totalLoaded: 0,
-                occupied: 0,
-                rows: [],
-                stats: {single:0, wPair:0, mixed:0, duoS:0, trioS:0},
-                leftoverS: wantS,
-                leftoverW: wantW
-            };
+    // --- EURO ---
+    let euroRemaining = euroCount;
+    let euroUnits = 0; // jedynki w osi
+    let euroRows3 = 0;
+    let euroRows2 = 0;
 
-            // Szukamy kombinacji, w której wchodzą wszystkie palety (lub max)
-            for (let singles = 0; singles <= 12; singles++) {  // do 12 jedynek – więcej to już bez sensu
-                let occ = singles * LEN_S_SINGLE;
-                let remL = L - occ;
-                if (remL < 0) continue;
+    // maks 17 jedynek
+    let maxOnAxis = Math.min(17, euroRemaining);
+    euroUnits = maxOnAxis;
+    euroRemaining -= euroUnits;
 
-                let remS = wantS - singles;
-                if (remS < 0) continue;
-
-                let maxPairs = Math.floor(wantW / 2);
-                let pairs = Math.min(maxPairs, Math.floor(remL / LEN_W_PAIR));
-                occ += pairs * LEN_W_PAIR;
-                remL = L - occ;
-
-                let remW = wantW - pairs * 2;
-
-                let mix = 0;
-                if (remW === 1 && remS >= 1 && remL >= LEN_MIX) {
-                    mix = 1;
-                    occ += LEN_MIX;
-                    remL = L - occ;
-                    remS -= 1;
-                    remW = 0;
-                }
-
-                let trio = Math.floor(remS / 3);
-                let duo = Math.floor((remS - trio * 3) / 2);
-                let lenS = trio * LEN_S_TRIO + duo * LEN_S_DUO;
-                if (lenS > remL) {
-                    // Jeśli nie wejdzie – zmniejszamy trójki/dwójki, aż wejdzie
-                    for (let t = trio; t >= 0; t--) {
-                        let r = remS - t * 3;
-                        let d = Math.floor(r / 2);
-                        let l = t * LEN_S_TRIO + d * LEN_S_DUO;
-                        if (l <= remL) {
-                            lenS = l;
-                            trio = t;
-                            duo = d;
-                            break;
-                        }
-                    }
-                }
-
-                occ += lenS;
-
-                let loaded = singles + pairs * 2 + mix * 2 + trio * 3 + duo * 2;
-                if (loaded > best.totalLoaded) {
-                    best = {
-                        totalLoaded: loaded,
-                        occupied: occ,
-                        rows: [],
-                        stats: {single: singles, wPair: pairs, mixed: mix, duoS: duo, trioS: trio},
-                        leftoverS: wantS - (singles + mix + trio*3 + duo*2),
-                        leftoverW: remW
-                    };
-
-                    if (singles > 0) best.rows.push({type: 'S-single', length: LEN_S_SINGLE, count: singles});
-                    if (pairs > 0) best.rows.push({type: 'W-pair', length: LEN_W_PAIR, count: pairs});
-                    if (mix > 0) best.rows.push({type: 'mixed', length: LEN_MIX, count: 1});
-                    if (duo > 0) best.rows.push({type: 'S-duo', length: LEN_S_DUO, count: duo});
-                    if (trio > 0) best.rows.push({type: 'S-trio', length: LEN_S_TRIO, count: trio});
-                }
+    // dopasowanie rzędów od tyłu
+    while (euroRemaining > 0) {
+        if (euroRemaining >= 3) {
+            euroRows3++;
+            euroRemaining -=3;
+            // jeśli rząd 3 nie mieści się w długości, zmniejszamy jedynki
+            while ((euroUnits*80 + euroRows3*120) > truckLength) {
+                euroUnits--;
             }
-
-            let fillPercent = Math.round((best.occupied / L) * 100);
-
-            let html = `<h3>Załadowano: ${best.totalLoaded} palet (${best.stats.single + best.stats.mixed + best.stats.duoS*2 + best.stats.trioS*3} S + ${best.stats.wPair*2 + best.stats.mixed} W)</h3>`;
-            html += `<p><strong>Zajęte:</strong> ${best.occupied.toFixed(2)} m &nbsp; <strong>Wolne:</strong> ${(L - best.occupied).toFixed(2)} m</p>`;
-            html += `<p><strong>Zapełnienie:</strong> ${fillPercent}%</p>`;
-
-            html += '<p><strong>Liczba układów (od przodu):</strong></p>';
-            html += `<div class="stat">Jedynki S: ${best.stats.single}</div>`;
-            html += `<div class="stat">Pary W: ${best.stats.wPair}</div>`;
-            html += `<div class="stat">Mieszane dwójki: ${best.stats.mixed}</div>`;
-            html += `<div class="stat">Dwójki S: ${best.stats.duoS}</div>`;
-            html += `<div class="stat">Trójki S: ${best.stats.trioS}</div>`;
-
-            html += '<p><strong>Układ od przodu do tyłu:</strong></p>';
-            best.rows.forEach(r => {
-                let txt = '';
-                if (r.type === 'S-single') txt = `${r.count} × jedynka S`;
-                else if (r.type === 'W-pair') txt = `${r.count} × para W`;
-                else if (r.type === 'mixed') txt = `1 × mieszana (W+S)`;
-                else if (r.type === 'S-duo') txt = `${r.count} × dwójka S`;
-                else if (r.type === 'S-trio') txt = `${r.count} × trójka S`;
-                html += `<div class="section">${txt} (${r.length} m / rząd)</div>`;
-            });
-
-            if (best.leftoverS > 0 || best.leftoverW > 0) {
-                html += `<p class="alert">Nie załadowano: ${best.leftoverS} S + ${best.leftoverW} W</p>`;
+        } else if (euroRemaining == 2) {
+            euroRows2++;
+            euroRemaining -=2;
+            while ((euroUnits*80 + euroRows2*80 + euroRows3*120) > truckLength) {
+                euroUnits--;
             }
-
-            html += '<h4>Schemat naczepy – każda paleta osobno</h4>';
-            html += '<canvas id="schemat" width="400" height="800"></canvas>';
-            html += '<p class="info">Niebieski = W • Pomarańcz = S jedynka • Żółty = S dwójka • Zielony = S trójka • Fiolet/turkus = mieszana • Szary = wolne</p>';
-
-            document.getElementById('wynik').innerHTML = html;
-
-            // Rysowanie
-            const canvas = document.getElementById('schemat');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-
-            const scaleY = (canvas.height - 80) / L;
-            const left = 80;
-            const fullW = canvas.width - 160;
-            let y = 40;
-
-            ctx.fillStyle = '#e9ecef';
-            ctx.fillRect(left, 40, fullW, canvas.height - 80);
-
-            ctx.strokeStyle = '#dee2e6';
-            ctx.lineWidth = 1;
-            for (let m = 1; m < L; m++) {
-                let yy = 40 + m * scaleY;
-                ctx.beginPath();
-                ctx.moveTo(left, yy);
-                ctx.lineTo(left + fullW, yy);
-                ctx.stroke();
+        } else {
+            // zostanie 1 → zamieniamy jedynkę na rząd 2
+            if (euroUnits>0) {
+                euroUnits--;
+                euroRows2++;
+                euroRemaining = 0;
             }
-
-            best.rows.forEach(row => {
-                const rowH = row.length * scaleY;
-
-                if (row.type === 'S-single') {
-                    const palW = fullW;
-                    for (let i = 0; i < row.count; i++) {
-                        drawPaleta(ctx, left, y + i * rowH, palW, rowH, '#fd7e14', 'S');
-                    }
-                    y += row.count * rowH;
-                }
-                else if (row.type === 'W-pair' || row.type === 'S-duo') {
-                    const palW = fullW / 2;
-                    const color = row.type === 'W-pair' ? '#007bff' : '#ffc107';
-                    const lbl = row.type === 'W-pair' ? 'W' : 'S';
-                    for (let i = 0; i < row.count; i++) {
-                        drawPaleta(ctx, left,           y + i * rowH, palW, rowH, color, lbl);
-                        drawPaleta(ctx, left + palW,    y + i * rowH, palW, rowH, color, lbl);
-                    }
-                    y += row.count * rowH;
-                }
-                else if (row.type === 'S-trio') {
-                    const palW = fullW / 3;
-                    for (let i = 0; i < row.count; i++) {
-                        drawPaleta(ctx, left,             y + i * rowH, palW, rowH, '#28a745', 'S');
-                        drawPaleta(ctx, left + palW,      y + i * rowH, palW, rowH, '#28a745', 'S');
-                        drawPaleta(ctx, left + 2*palW,    y + i * rowH, palW, rowH, '#28a745', 'S');
-                    }
-                    y += row.count * rowH;
-                }
-                else if (row.type === 'mixed') {
-                    const palW = fullW / 2;
-                    drawPaleta(ctx, left,         y, palW, rowH, '#6f42c1', 'W');
-                    drawPaleta(ctx, left + palW,  y, palW, rowH, '#20c997', 'S');
-                    y += rowH;
-                }
-            });
-
-            if (y < canvas.height - 40) {
-                ctx.fillStyle = '#ced4da';
-                ctx.fillRect(left, y, fullW, canvas.height - 40 - y);
-                ctx.fillStyle = '#6c757d';
-                ctx.font = '15px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('WOLNE MIEJSCE', canvas.width / 2, y + (canvas.height - 40 - y) / 2);
-            }
-
-            ctx.fillStyle = '#212529';
-            ctx.font = 'bold 17px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('PRZÓD naczepy', canvas.width / 2, 25);
-            ctx.fillText('TYŁ naczepy', canvas.width / 2, canvas.height - 15);
-        });
-
-        function drawPaleta(ctx, x, y, w, h, color, label) {
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y, w, h);
-            ctx.strokeStyle = '#343a40';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, w, h);
-            ctx.fillStyle = (color === '#007bff' || color === '#28a745' || color === '#6f42c1') ? '#ffffff' : '#212529';
-            ctx.font = 'bold 13px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(label, x + w / 2, y + h / 2);
         }
-    </script>
+    }
+
+    // --- W 120x100 ---
+    let wRemaining = wCount;
+    let wUnits = Math.min(13, wRemaining);
+    wRemaining -= wUnits;
+    let wPairs = 0;
+    while (wRemaining >0) {
+        wPairs++;
+        wRemaining -=2;
+        while ((wUnits*100 + wPairs*100) > truckLength) {
+            wUnits--;
+        }
+    }
+
+    // --- Wyświetlenie wyników ---
+    document.getElementById("result").innerHTML =
+        `EURO: ${euroUnits} jedynki, ${euroRows3} rzędy 3, ${euroRows2} rzędy 2<br>`+
+        `W 120x100: ${wUnits} jedynki, ${wPairs} pary`;
+
+    drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs);
+}
+
+// --- Wizualizacja ---
+function drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs) {
+    const truck = document.getElementById("truck");
+    truck.innerHTML = ""; // czyszczenie
+
+    const scale = 0.5; // cm -> px
+    const truckLengthPx = 1360 * scale;
+    const truckWidthPx = 250 * scale;
+
+    let x = 0;
+
+    // --- EURO jedynki w osi ---
+    const euroY = (truckWidthPx - 80*scale)/2; // wyśrodkowane w osi
+    for(let i=0;i<euroUnits;i++){
+        const div = document.createElement("div");
+        div.className="pallet euro";
+        div.style.width = 120*scale + "px";
+        div.style.height = 80*scale + "px";
+        div.style.left = x*scale + "px";
+        div.style.top = euroY + "px";
+        div.innerText="E";
+        truck.appendChild(div);
+        x+=80;
+    }
+
+    // --- EURO rzędy 3 ---
+    for(let i=0;i<euroRows3;i++){
+        for(let j=0;j<3;j++){
+            const div = document.createElement("div");
+            div.className="pallet euro";
+            div.style.width = 120*scale/3 + "px";
+            div.style.height = 80*scale + "px";
+            div.style.left = x*scale + j*120*scale/3 + "px";
+            div.style.top = "10px";
+            div.innerText="E";
+            truck.appendChild(div);
+        }
+        x+=120;
+    }
+
+    // --- EURO rzędy 2 ---
+    for(let i=0;i<euroRows2;i++){
+        for(let j=0;j<2;j++){
+            const div = document.createElement("div");
+            div.className="pallet euro";
+            div.style.width = 120*scale/2 + "px";
+            div.style.height = 80*scale + "px";
+            div.style.left = x*scale + j*120*scale/2 + "px";
+            div.style.top = "10px";
+            div.innerText="E";
+            truck.appendChild(div);
+        }
+        x+=80;
+    }
+
+    // --- W 120x100 jedynki ---
+    const wY = (truckWidthPx - 100*scale)/2 + 20; // przesunięcie w pionie
+    for(let i=0;i<wUnits;i++){
+        const div = document.createElement("div");
+        div.className="pallet w120";
+        div.style.width = 120*scale + "px";
+        div.style.height = 100*scale + "px";
+        div.style.left = x*scale + "px";
+        div.style.top = wY + "px";
+        div.innerText="W";
+        truck.appendChild(div);
+        x+=100;
+    }
+
+    // --- W pary ---
+    for(let i=0;i<wPairs;i++){
+        for(let j=0;j<2;j++){
+            const div = document.createElement("div");
+            div.className="pallet w120";
+            div.style.width = 120*scale/2 + "px";
+            div.style.height = 100*scale + "px";
+            div.style.left = x*scale + j*120*scale/2 + "px";
+            div.style.top = wY + "px";
+            div.innerText="W";
+            truck.appendChild(div);
+        }
+        x+=100;
+    }
+}
+</script>
 </body>
 </html>
