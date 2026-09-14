@@ -54,7 +54,7 @@ body {
 
     bottom:20px;
 
-    background:rgba(0,0,0,.85);
+    background:rgba(0,0,0,.86);
 
     color:white;
 
@@ -70,9 +70,9 @@ body {
 
     text-align:center;
 
-    font-size:16px;
+    font-size:15px;
 
-    margin-bottom:8px;
+    margin-bottom:4px;
 
 }
 
@@ -84,7 +84,39 @@ body {
 
     font-weight:bold;
 
-    margin-bottom:10px;
+    margin-bottom:5px;
+
+}
+
+#arrowBox {
+
+    display:none;
+
+    text-align:center;
+
+    margin:5px 0 12px 0;
+
+}
+
+#arrow {
+
+    display:inline-block;
+
+    font-size:70px;
+
+    line-height:70px;
+
+    transform-origin:center;
+
+    transition:transform .15s linear;
+
+}
+
+#directionText {
+
+    font-size:14px;
+
+    margin-top:3px;
 
 }
 
@@ -124,7 +156,7 @@ button {
 
 }
 
-#stop {
+#reset {
 
     background:#e74c3c;
 
@@ -154,6 +186,18 @@ button {
 
     </div>
 
+    <div id="arrowBox">
+
+        <div id="arrow">⬆️</div>
+
+        <div id="directionText">
+
+            Kierunek do auta
+
+        </div>
+
+    </div>
+
     <div class="buttons">
 
         <button id="park">
@@ -168,7 +212,7 @@ button {
 
         </button>
 
-        <button id="stop">
+        <button id="reset">
 
             ✕ RESET
 
@@ -210,11 +254,27 @@ let returnMode = false;
 
 /*
 
-================================================
+Kierunek telefonu:
+
+0 = północ
+
+90 = wschód
+
+180 = południe
+
+270 = zachód
+
+*/
+
+let phoneHeading = null;
+
+/*
+
+========================================
 
 WCZYTANIE ZAPISANEGO AUTA
 
-================================================
+========================================
 
 */
 
@@ -236,15 +296,25 @@ if(car){
 
     carMarker.bindPopup("🚗 TWOJE AUTO");
 
+    /*
+
+    Auto już zapisane:
+
+    chowamy ZAPARKOWAŁEM.
+
+    */
+
+    document.getElementById("park").style.display = "none";
+
 }
 
 /*
 
-================================================
+========================================
 
-ODLEGŁOŚĆ GPS
+ODLEGŁOŚĆ
 
-================================================
+========================================
 
 */
 
@@ -292,11 +362,141 @@ function distance(lat1,lon1,lat2,lon2){
 
 /*
 
-================================================
+========================================
 
-AKTUALIZACJA LINII POWROTU
+KĄT GPS: POZYCJA -> AUTO
 
-================================================
+========================================
+
+*/
+
+function bearingToCar(){
+
+    if(!current || !car) return null;
+
+    const lat1 =
+
+        current.lat * Math.PI/180;
+
+    const lat2 =
+
+        car.lat * Math.PI/180;
+
+    const dLon =
+
+        (car.lng-current.lng) *
+
+        Math.PI/180;
+
+    const y =
+
+        Math.sin(dLon) *
+
+        Math.cos(lat2);
+
+    const x =
+
+        Math.cos(lat1) *
+
+        Math.sin(lat2) -
+
+        Math.sin(lat1) *
+
+        Math.cos(lat2) *
+
+        Math.cos(dLon);
+
+    let bearing =
+
+        Math.atan2(y,x) *
+
+        180/Math.PI;
+
+    bearing =
+
+        (bearing + 360) % 360;
+
+    return bearing;
+
+}
+
+/*
+
+========================================
+
+AKTUALIZACJA STRZAŁKI
+
+========================================
+
+*/
+
+function updateArrow(){
+
+    if(!returnMode) return;
+
+    if(!current || !car) return;
+
+    const bearing = bearingToCar();
+
+    if(bearing === null) return;
+
+    let rotation;
+
+    /*
+
+    Jeżeli mamy kompas:
+
+    obracamy strzałkę względem
+
+    kierunku telefonu.
+
+    */
+
+    if(phoneHeading !== null){
+
+        rotation =
+
+            bearing - phoneHeading;
+
+    } else {
+
+        /*
+
+        Awaryjnie pokazujemy kierunek
+
+        względem północy.
+
+        */
+
+        rotation = bearing;
+
+    }
+
+    rotation =
+
+        (rotation + 360) % 360;
+
+    document.getElementById(
+
+        "arrow"
+
+    ).style.transform =
+
+        "rotate(" +
+
+        rotation +
+
+        "deg)";
+
+}
+
+/*
+
+========================================
+
+LINIA POWROTU
+
+========================================
 
 */
 
@@ -396,15 +596,17 @@ function updateReturn(){
 
     }
 
+    updateArrow();
+
 }
 
 /*
 
-================================================
+========================================
 
 GPS
 
-================================================
+========================================
 
 */
 
@@ -490,16 +692,6 @@ function gpsUpdate(pos){
 
 }
 
-/*
-
-================================================
-
-BŁĄD GPS
-
-================================================
-
-*/
-
 function gpsError(err){
 
     document.getElementById(
@@ -513,16 +705,6 @@ function gpsError(err){
         err.message;
 
 }
-
-/*
-
-================================================
-
-URUCHOM GPS
-
-================================================
-
-*/
 
 navigator.geolocation.watchPosition(
 
@@ -544,11 +726,137 @@ navigator.geolocation.watchPosition(
 
 /*
 
-================================================
+========================================
+
+KOMPAS IPHONE
+
+========================================
+
+*/
+
+function orientationHandler(event){
+
+    let heading = null;
+
+    /*
+
+    Safari / iPhone
+
+    */
+
+    if(
+
+        typeof event.webkitCompassHeading ===
+
+        "number"
+
+    ){
+
+        heading =
+
+            event.webkitCompassHeading;
+
+    }
+
+    /*
+
+    Inne przeglądarki
+
+    */
+
+    else if(
+
+        event.alpha !== null
+
+    ){
+
+        heading =
+
+            360 - event.alpha;
+
+    }
+
+    if(heading !== null){
+
+        phoneHeading =
+
+            (heading + 360) % 360;
+
+        updateArrow();
+
+    }
+
+}
+
+function startCompass(){
+
+    /*
+
+    iOS wymaga pozwolenia na kompas
+
+    wywołanego po kliknięciu użytkownika.
+
+    */
+
+    if(
+
+        typeof DeviceOrientationEvent !==
+
+        "undefined" &&
+
+        typeof DeviceOrientationEvent.requestPermission ===
+
+        "function"
+
+    ){
+
+        DeviceOrientationEvent
+
+        .requestPermission()
+
+        .then(function(permission){
+
+            if(permission === "granted"){
+
+                window.addEventListener(
+
+                    "deviceorientation",
+
+                    orientationHandler,
+
+                    true
+
+                );
+
+            }
+
+        })
+
+        .catch(function(){});
+
+    } else {
+
+        window.addEventListener(
+
+            "deviceorientation",
+
+            orientationHandler,
+
+            true
+
+        );
+
+    }
+
+}
+
+/*
+
+========================================
 
 ZAPARKOWAŁEM
 
-================================================
+========================================
 
 */
 
@@ -577,22 +885,6 @@ document.getElementById(
         lng:current.lng
 
     };
-
-    /*
-
-    ZAPISUJEMY AUTO W PAMIĘCI IPHONE'A
-
-    Dzięki temu możesz:
-
-    - wygasić ekran
-
-    - zamknąć stronę
-
-    - chodzić po lesie
-
-    - wrócić później
-
-    */
 
     localStorage.setItem(
 
@@ -636,19 +928,23 @@ document.getElementById(
 
         .openPopup();
 
-    returnMode = false;
+    /*
 
-    if(returnLine){
+    KLUCZOWA ZMIANA:
 
-        map.removeLayer(
+    chowamy przycisk natychmiast,
 
-            returnLine
+    żeby nie nadpisać parkingu.
 
-        );
+    */
 
-        returnLine = null;
+    document.getElementById(
 
-    }
+        "park"
+
+    ).style.display =
+
+        "none";
 
     document.getElementById(
 
@@ -662,11 +958,11 @@ document.getElementById(
 
 /*
 
-================================================
+========================================
 
-WRÓĆ DO AUTA
+WRÓĆ
 
-================================================
+========================================
 
 */
 
@@ -680,7 +976,7 @@ document.getElementById(
 
         alert(
 
-            "Najpierw kliknij ZAPARKOWAŁEM."
+            "Najpierw zapisz miejsce auta."
 
         );
 
@@ -700,17 +996,29 @@ document.getElementById(
 
     }
 
-    returnMode = true;
-
-    updateReturn();
-
     /*
 
-    POKAŻ CAŁĄ TRASĘ:
+    Uruchamiamy kompas.
 
-    TY -> AUTO
+    Na iPhonie może wyskoczyć pytanie
+
+    o dostęp do orientacji/ruchu.
 
     */
+
+    startCompass();
+
+    returnMode = true;
+
+    document.getElementById(
+
+        "arrowBox"
+
+    ).style.display =
+
+        "block";
+
+    updateReturn();
 
     map.fitBounds(
 
@@ -738,9 +1046,9 @@ document.getElementById(
 
             padding:[
 
-                50,
+                60,
 
-                180
+                220
 
             ]
 
@@ -752,17 +1060,17 @@ document.getElementById(
 
 /*
 
-================================================
+========================================
 
 RESET
 
-================================================
+========================================
 
 */
 
 document.getElementById(
 
-    "stop"
+    "reset"
 
 ).onclick = function(){
 
@@ -816,9 +1124,35 @@ document.getElementById(
 
     document.getElementById(
 
+        "arrowBox"
+
+    ).style.display =
+
+        "none";
+
+    document.getElementById(
+
         "distance"
 
-    ).innerText = "—";
+    ).innerText =
+
+        "—";
+
+    /*
+
+    Dopiero RESET pozwala
+
+    zapisać nowe miejsce parkingu.
+
+    */
+
+    document.getElementById(
+
+        "park"
+
+    ).style.display =
+
+        "block";
 
 };
 
