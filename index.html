@@ -6,11 +6,17 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport"
+
+content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<meta name="theme-color" content="#0b0f0c">
+
+<link rel="manifest" href="./manifest.webmanifest">
 
 <title>Grzyby – powrót do auta</title>
 
@@ -18,81 +24,353 @@
 
 :root{
 
-  --bg:#0b0f0c; --panel:rgba(10,14,11,.90); --text:#fff; --muted:#aeb7b0;
+    --bg:#0b0f0c;
 
-  --green:#31d158; --orange:#ff9f0a; --red:#ff453a; --blue:#0a84ff;
+    --panel:rgba(10,14,11,.90);
+
+    --text:#fff;
+
+    --muted:#aeb7b0;
+
+    --green:#31d158;
+
+    --orange:#ff9f0a;
+
+    --red:#ff453a;
+
+    --blue:#0a84ff;
 
 }
 
-*{box-sizing:border-box}
+*{
 
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+    box-sizing:border-box;
 
-#scene{position:fixed;inset:0;background:
+}
 
- radial-gradient(circle at center,rgba(255,255,255,.06) 0 1px,transparent 1.5px) 0 0/28px 28px,
+html,
 
- linear-gradient(#111813,#0b0f0c)}
+body{
 
-canvas{position:absolute;inset:0;width:100%;height:100%}
+    margin:0;
+
+    width:100%;
+
+    height:100%;
+
+    overflow:hidden;
+
+    background:var(--bg);
+
+    font-family:
+
+        -apple-system,
+
+        BlinkMacSystemFont,
+
+        "Segoe UI",
+
+        sans-serif;
+
+    color:var(--text);
+
+}
+
+/* ===============================
+
+   TŁO / RADAR
+
+================================ */
+
+#scene{
+
+    position:fixed;
+
+    inset:0;
+
+    background:
+
+    radial-gradient(
+
+        circle at center,
+
+        rgba(255,255,255,.06) 0 1px,
+
+        transparent 1.5px
+
+    )
+
+    0 0 / 28px 28px,
+
+    linear-gradient(
+
+        #111813,
+
+        #0b0f0c
+
+    );
+
+}
+
+canvas{
+
+    position:absolute;
+
+    inset:0;
+
+    width:100%;
+
+    height:100%;
+
+}
+
+/* ===============================
+
+   GÓRNY PANEL
+
+================================ */
 
 #top{
 
-  position:fixed;z-index:5;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;
+    position:fixed;
 
-  background:var(--panel);border-radius:18px;padding:12px 14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+    z-index:5;
+
+    top:max(
+
+        12px,
+
+        env(safe-area-inset-top)
+
+    );
+
+    left:12px;
+
+    right:12px;
+
+    background:var(--panel);
+
+    border-radius:18px;
+
+    padding:12px 14px;
+
+    backdrop-filter:blur(12px);
+
+    -webkit-backdrop-filter:blur(12px);
 
 }
 
-#status{font-size:13px;color:var(--muted);text-align:center}
+#status{
 
-#distance{font-size:32px;font-weight:800;text-align:center;margin-top:3px}
+    font-size:13px;
 
-#hint{font-size:13px;color:var(--muted);text-align:center;margin-top:4px}
+    color:var(--muted);
+
+    text-align:center;
+
+}
+
+#distance{
+
+    font-size:32px;
+
+    font-weight:800;
+
+    text-align:center;
+
+    margin-top:3px;
+
+}
+
+#hint{
+
+    font-size:13px;
+
+    color:var(--muted);
+
+    text-align:center;
+
+    margin-top:4px;
+
+}
+
+/* ===============================
+
+   DOLNY PANEL
+
+================================ */
 
 #bottom{
 
-  position:fixed;z-index:5;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));
+    position:fixed;
 
-  background:var(--panel);border-radius:18px;padding:10px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+    z-index:5;
+
+    left:12px;
+
+    right:12px;
+
+    bottom:max(
+
+        12px,
+
+        env(safe-area-inset-bottom)
+
+    );
+
+    background:var(--panel);
+
+    border-radius:18px;
+
+    padding:10px;
+
+    backdrop-filter:blur(12px);
+
+    -webkit-backdrop-filter:blur(12px);
 
 }
 
-.row{display:flex;gap:8px}
+.row{
+
+    display:flex;
+
+    gap:8px;
+
+}
 
 button{
 
-  flex:1;border:0;border-radius:14px;padding:15px 8px;font-size:16px;font-weight:800
+    flex:1;
+
+    border:0;
+
+    border-radius:14px;
+
+    padding:15px 8px;
+
+    font-size:16px;
+
+    font-weight:800;
 
 }
 
-#park{background:var(--green);color:#001a07}
+#park{
 
-#back{background:var(--orange);color:#1d0d00}
+    background:var(--green);
 
-#reset{background:var(--red);color:white}
+    color:#001a07;
+
+}
+
+#back{
+
+    background:var(--orange);
+
+    color:#1d0d00;
+
+}
+
+#reset{
+
+    background:var(--red);
+
+    color:white;
+
+}
+
+/* ===============================
+
+   STRZAŁKA
+
+================================ */
 
 #compassArrow{
 
-  position:fixed;z-index:4;left:50%;top:50%;width:86px;height:86px;margin:-43px 0 0 -43px;
+    position:fixed;
 
-  display:none;align-items:center;justify-content:center;font-size:72px;line-height:1;
+    z-index:4;
 
-  transform-origin:50% 50%;filter:drop-shadow(0 3px 10px rgba(0,0,0,.7))
+    left:50%;
+
+    top:50%;
+
+    width:86px;
+
+    height:86px;
+
+    margin-left:-43px;
+
+    margin-top:-43px;
+
+    display:none;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:72px;
+
+    line-height:1;
+
+    transform-origin:50% 50%;
+
+    transition:
+
+        transform .08s linear;
+
+    will-change:transform;
+
+    filter:
+
+        drop-shadow(
+
+            0 3px 10px
+
+            rgba(0,0,0,.7)
+
+        );
 
 }
 
-#north{
+#front{
 
-  position:fixed;z-index:4;left:50%;top:calc(50% - 122px);transform:translateX(-50%);
+    position:fixed;
 
-  font-size:12px;color:var(--muted);display:none
+    z-index:4;
+
+    left:50%;
+
+    top:calc(
+
+        50% - 125px
+
+    );
+
+    transform:
+
+        translateX(-50%);
+
+    font-size:12px;
+
+    color:var(--muted);
+
+    display:none;
 
 }
 
 .badge{
 
-  display:inline-block;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.08);margin-left:5px
+    display:inline-block;
+
+    padding:2px 7px;
+
+    border-radius:10px;
+
+    background:
+
+        rgba(255,255,255,.08);
+
+    margin-left:5px;
 
 }
 
@@ -102,33 +380,69 @@ button{
 
 <body>
 
-<div id="scene"><canvas id="radar"></canvas></div>
+<div id="scene">
 
-<div id="top">
-
-  <div id="status">Czekam na GPS…</div>
-
-  <div id="distance">—</div>
-
-  <div id="hint">Działa bez internetu po otwarciu strony. GPS i kompas nie wymagają sieci.</div>
+    <canvas id="radar"></canvas>
 
 </div>
 
-<div id="north">PRZÓD TELEFONU</div>
+<div id="top">
 
-<div id="compassArrow">↑</div>
+    <div id="status">
+
+        Czekam na GPS…
+
+    </div>
+
+    <div id="distance">
+
+        —
+
+    </div>
+
+    <div id="hint">
+
+        Przy samochodzie naciśnij ZAPARKOWAŁEM.
+
+    </div>
+
+</div>
+
+<div id="front">
+
+    PRZÓD TELEFONU
+
+</div>
+
+<div id="compassArrow">
+
+    ↑
+
+</div>
 
 <div id="bottom">
 
-  <div class="row">
+    <div class="row">
 
-    <button id="park">🚗 ZAPARKOWAŁEM</button>
+        <button id="park">
 
-    <button id="back">↩️ WRÓĆ</button>
+            🚗 ZAPARKOWAŁEM
 
-    <button id="reset">RESET</button>
+        </button>
 
-  </div>
+        <button id="back">
+
+            ↩️ WRÓĆ
+
+        </button>
+
+        <button id="reset">
+
+            RESET
+
+        </button>
+
+    </div>
 
 </div>
 
@@ -136,15 +450,49 @@ button{
 
 "use strict";
 
-const $ = id => document.getElementById(id);
+/* ===============================
 
-const canvas = $("radar");
+   ELEMENTY
 
-const ctx = canvas.getContext("2d");
+================================ */
+
+const $ =
+
+    id =>
+
+    document.getElementById(id);
+
+const canvas =
+
+    $("radar");
+
+const ctx =
+
+    canvas.getContext("2d");
+
+/* ===============================
+
+   DANE
+
+================================ */
 
 let current = null;
 
-let car = JSON.parse(localStorage.getItem("carPosition") || "null");
+let car =
+
+    JSON.parse(
+
+        localStorage.getItem(
+
+            "carPosition"
+
+        )
+
+        ||
+
+        "null"
+
+    );
 
 let returnMode = false;
 
@@ -152,661 +500,1481 @@ let phoneHeading = null;
 
 let orientationStarted = false;
 
+/* ===============================
+
+   CANVAS
+
+================================ */
+
 function resizeCanvas(){
 
-  const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const dpr =
 
-  canvas.width = innerWidth * dpr;
+        Math.max(
 
-  canvas.height = innerHeight * dpr;
+            1,
 
-  canvas.style.width = innerWidth + "px";
+            window.devicePixelRatio || 1
 
-  canvas.style.height = innerHeight + "px";
+        );
 
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+    canvas.width =
 
-  drawRadar();
+        innerWidth * dpr;
+
+    canvas.height =
+
+        innerHeight * dpr;
+
+    canvas.style.width =
+
+        innerWidth + "px";
+
+    canvas.style.height =
+
+        innerHeight + "px";
+
+    ctx.setTransform(
+
+        dpr,
+
+        0,
+
+        0,
+
+        dpr,
+
+        0,
+
+        0
+
+    );
+
+    drawRadar();
 
 }
 
-addEventListener("resize", resizeCanvas);
+window.addEventListener(
+
+    "resize",
+
+    resizeCanvas
+
+);
 
 resizeCanvas();
 
-if(car) $("park").style.display = "none";
+/* ===============================
 
-function distanceM(lat1, lon1, lat2, lon2){
+   AUTO JUŻ ZAPISANE
 
-  const R = 6371000;
+================================ */
 
-  const p1 = lat1*Math.PI/180, p2 = lat2*Math.PI/180;
+if(car){
 
-  const dp = (lat2-lat1)*Math.PI/180, dl = (lon2-lon1)*Math.PI/180;
+    $("park").style.display =
 
-  const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
-
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        "none";
 
 }
 
-function bearingDeg(lat1, lon1, lat2, lon2){
+/* ===============================
 
-  const p1 = lat1*Math.PI/180, p2 = lat2*Math.PI/180;
+   ODLEGŁOŚĆ GPS
 
-  const dl = (lon2-lon1)*Math.PI/180;
+================================ */
 
-  const y = Math.sin(dl)*Math.cos(p2);
+function distanceM(
 
-  const x = Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
+    lat1,
 
-  return (Math.atan2(y,x)*180/Math.PI + 360) % 360;
+    lon1,
+
+    lat2,
+
+    lon2
+
+){
+
+    const R =
+
+        6371000;
+
+    const p1 =
+
+        lat1 *
+
+        Math.PI /
+
+        180;
+
+    const p2 =
+
+        lat2 *
+
+        Math.PI /
+
+        180;
+
+    const dp =
+
+        (lat2-lat1) *
+
+        Math.PI /
+
+        180;
+
+    const dl =
+
+        (lon2-lon1) *
+
+        Math.PI /
+
+        180;
+
+    const a =
+
+        Math.sin(dp/2) ** 2
+
+        +
+
+        Math.cos(p1) *
+
+        Math.cos(p2) *
+
+        Math.sin(dl/2) ** 2;
+
+    return
+
+        R *
+
+        2 *
+
+        Math.atan2(
+
+            Math.sqrt(a),
+
+            Math.sqrt(
+
+                1-a
+
+            )
+
+        );
 
 }
+
+/* ===============================
+
+   KIERUNEK DO AUTA
+
+================================ */
+
+function bearingDeg(
+
+    lat1,
+
+    lon1,
+
+    lat2,
+
+    lon2
+
+){
+
+    const p1 =
+
+        lat1 *
+
+        Math.PI /
+
+        180;
+
+    const p2 =
+
+        lat2 *
+
+        Math.PI /
+
+        180;
+
+    const dl =
+
+        (lon2-lon1) *
+
+        Math.PI /
+
+        180;
+
+    const y =
+
+        Math.sin(dl) *
+
+        Math.cos(p2);
+
+    const x =
+
+        Math.cos(p1) *
+
+        Math.sin(p2)
+
+        -
+
+        Math.sin(p1) *
+
+        Math.cos(p2) *
+
+        Math.cos(dl);
+
+    return (
+
+        Math.atan2(
+
+            y,
+
+            x
+
+        )
+
+        *
+
+        180 /
+
+        Math.PI
+
+        +
+
+        360
+
+    ) % 360;
+
+}
+
+/* ===============================
+
+   NORMALIZACJA KĄTA
+
+================================ */
 
 function normalizeSigned(a){
 
-  a = ((a + 180) % 360 + 360) % 360 - 180;
+    return (
 
-  return a;
+        (
+
+            (
+
+                a + 180
+
+            )
+
+            % 360
+
+            + 360
+
+        )
+
+        % 360
+
+    )
+
+    - 180;
 
 }
+
+/* ===============================
+
+   INTERFEJS
+
+================================ */
 
 function updateUI(){
 
-  if(!current){
+    if(!current){
 
-    $("status").textContent = "Czekam na GPS…";
+        $("status").textContent =
 
-    return;
+            "Czekam na GPS…";
 
-  }
-
-  $("status").innerHTML =
-
-    `GPS ±${Math.round(current.accuracy)} m` +
-
-    (phoneHeading!==null
-
-      ? ` <span class="badge">kompas OK</span>`
-
-      : ` <span class="badge">kompas —</span>`);
-
-  if(car && returnMode){
-
-    const d = distanceM(current.lat,current.lng,car.lat,car.lng);
-
-    $("distance").textContent =
-
-      d >= 1000
-
-        ? `🚗 ${(d/1000).toFixed(2)} km`
-
-        : `🚗 ${Math.round(d)} m`;
-
-    $("hint").textContent =
-
-      "Strzałka pokazuje auto względem kierunku telefonu.";
-
-  } else if(car){
-
-    $("distance").textContent = "🚗 AUTO ZAPISANE";
-
-    $("hint").textContent =
-
-      "Możesz wygasić ekran. Gdy wracasz, otwórz stronę i naciśnij WRÓĆ.";
-
-  } else {
-
-    $("distance").textContent = "—";
-
-    $("hint").textContent =
-
-      "Przy samochodzie naciśnij ZAPARKOWAŁEM.";
-
-  }
-
-  updateArrow();
-
-  drawRadar();
-
-}
-
-function updateArrow(){
-
-  if(!returnMode || !car || !current || phoneHeading===null){
-
-    $("compassArrow").style.display =
-
-      returnMode ? "flex" : "none";
-
-    $("north").style.display =
-
-      returnMode ? "block" : "none";
-
-    if(returnMode && phoneHeading===null){
-
-      $("compassArrow").style.transform =
-
-        "rotate(0deg)";
-
-      $("hint").textContent =
-
-        "Czekam na kompas iPhone'a…";
+        return;
 
     }
 
-    return;
+    $("status").innerHTML =
 
-  }
+        `GPS ±${Math.round(
 
-  const target =
+            current.accuracy
 
-    bearingDeg(
+        )} m`
 
-      current.lat,
+        +
 
-      current.lng,
+        (
 
-      car.lat,
+            phoneHeading !== null
 
-      car.lng
+            ?
 
-    );
+            ` <span class="badge">
 
-  const relative =
+                kompas OK
 
-    normalizeSigned(
+            </span>`
 
-      target - phoneHeading
+            :
 
-    );
+            ` <span class="badge">
 
-  $("compassArrow").style.display = "flex";
+                kompas —
 
-  $("north").style.display = "block";
+            </span>`
 
-  $("compassArrow").style.transform =
+        );
 
-    `rotate(${relative}deg)`;
+    if(
+
+        car &&
+
+        returnMode
+
+    ){
+
+        const d =
+
+            distanceM(
+
+                current.lat,
+
+                current.lng,
+
+                car.lat,
+
+                car.lng
+
+            );
+
+        if(d >= 1000){
+
+            $("distance").textContent =
+
+                "🚗 "
+
+                +
+
+                (d/1000).toFixed(2)
+
+                +
+
+                " km";
+
+        }
+
+        else{
+
+            $("distance").textContent =
+
+                "🚗 "
+
+                +
+
+                Math.round(d)
+
+                +
+
+                " m";
+
+        }
+
+        $("hint").textContent =
+
+            "Strzałka pokazuje kierunek do samochodu.";
+
+    }
+
+    else if(car){
+
+        $("distance").textContent =
+
+            "🚗 AUTO ZAPISANE";
+
+        $("hint").textContent =
+
+            "Gdy chcesz wracać, naciśnij WRÓĆ.";
+
+    }
+
+    else{
+
+        $("distance").textContent =
+
+            "—";
+
+        $("hint").textContent =
+
+            "Przy samochodzie naciśnij ZAPARKOWAŁEM.";
+
+    }
+
+    updateArrow();
+
+    drawRadar();
 
 }
 
+/* ===============================
+
+   STRZAŁKA
+
+================================ */
+
+function updateArrow(){
+
+    if(
+
+        !returnMode
+
+        ||
+
+        !car
+
+        ||
+
+        !current
+
+    ){
+
+        $("compassArrow")
+
+            .style.display =
+
+            "none";
+
+        $("front")
+
+            .style.display =
+
+            "none";
+
+        return;
+
+    }
+
+    $("compassArrow")
+
+        .style.display =
+
+        "flex";
+
+    $("front")
+
+        .style.display =
+
+        "block";
+
+    if(
+
+        phoneHeading === null
+
+    ){
+
+        $("hint").textContent =
+
+            "Czekam na kompas iPhone'a…";
+
+        return;
+
+    }
+
+    const target =
+
+        bearingDeg(
+
+            current.lat,
+
+            current.lng,
+
+            car.lat,
+
+            car.lng
+
+        );
+
+    /*
+
+       AUTO PRZED TOBĄ:
+
+       0° -> strzałka w górę
+
+       AUTO ZA TOBĄ:
+
+       180° -> strzałka w dół
+
+    */
+
+    const relative =
+
+        normalizeSigned(
+
+            target
+
+            -
+
+            phoneHeading
+
+        );
+
+    $("compassArrow")
+
+        .style.transform =
+
+        `rotate(${relative}deg)`;
+
+}
+
+/* ===============================
+
+   RADAR
+
+================================ */
+
 function drawRadar(){
 
-  const w = innerWidth;
+    const w =
 
-  const h = innerHeight;
+        innerWidth;
 
-  ctx.clearRect(0,0,w,h);
+    const h =
 
-  const cx = w/2;
+        innerHeight;
 
-  const cy = h/2;
+    ctx.clearRect(
 
-  const maxR = Math.min(w,h)*0.36;
+        0,
 
-  ctx.save();
+        0,
 
-  ctx.strokeStyle =
+        w,
 
-    "rgba(255,255,255,.14)";
+        h
 
-  ctx.lineWidth = 1;
+    );
 
-  [0.33,0.66,1].forEach(k=>{
+    const cx =
+
+        w / 2;
+
+    const cy =
+
+        h / 2;
+
+    const maxR =
+
+        Math.min(
+
+            w,
+
+            h
+
+        )
+
+        *
+
+        0.36;
+
+    ctx.save();
+
+    ctx.strokeStyle =
+
+        "rgba(255,255,255,.14)";
+
+    ctx.lineWidth =
+
+        1;
+
+    [
+
+        0.33,
+
+        0.66,
+
+        1
+
+    ]
+
+    .forEach(
+
+        k => {
+
+            ctx.beginPath();
+
+            ctx.arc(
+
+                cx,
+
+                cy,
+
+                maxR*k,
+
+                0,
+
+                Math.PI*2
+
+            );
+
+            ctx.stroke();
+
+        }
+
+    );
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+
+        cx-maxR,
+
+        cy
+
+    );
+
+    ctx.lineTo(
+
+        cx+maxR,
+
+        cy
+
+    );
+
+    ctx.moveTo(
+
+        cx,
+
+        cy-maxR
+
+    );
+
+    ctx.lineTo(
+
+        cx,
+
+        cy+maxR
+
+    );
+
+    ctx.stroke();
+
+    /* TY */
+
+    ctx.fillStyle =
+
+        "#0a84ff";
 
     ctx.beginPath();
 
     ctx.arc(
 
-      cx,
+        cx,
 
-      cy,
+        cy,
 
-      maxR*k,
+        8,
 
-      0,
+        0,
 
-      Math.PI*2
+        Math.PI*2
 
     );
-
-    ctx.stroke();
-
-  });
-
-  ctx.beginPath();
-
-  ctx.moveTo(cx-maxR,cy);
-
-  ctx.lineTo(cx+maxR,cy);
-
-  ctx.moveTo(cx,cy-maxR);
-
-  ctx.lineTo(cx,cy+maxR);
-
-  ctx.stroke();
-
-  ctx.fillStyle = "#0a84ff";
-
-  ctx.beginPath();
-
-  ctx.arc(cx,cy,8,0,Math.PI*2);
-
-  ctx.fill();
-
-  ctx.strokeStyle = "#fff";
-
-  ctx.lineWidth = 3;
-
-  ctx.stroke();
-
-  if(returnMode && current && car){
-
-    const b =
-
-      bearingDeg(
-
-        current.lat,
-
-        current.lng,
-
-        car.lat,
-
-        car.lng
-
-      );
-
-    const rel =
-
-      phoneHeading===null
-
-        ? b
-
-        : normalizeSigned(
-
-            b-phoneHeading
-
-          );
-
-    const ang =
-
-      (rel-90) *
-
-      Math.PI/180;
-
-    const edgeR =
-
-      maxR*0.88;
-
-    const ex =
-
-      cx +
-
-      Math.cos(ang)*edgeR;
-
-    const ey =
-
-      cy +
-
-      Math.sin(ang)*edgeR;
-
-    ctx.strokeStyle = "#ff453a";
-
-    ctx.lineWidth = 5;
-
-    ctx.setLineDash([12,8]);
-
-    ctx.beginPath();
-
-    ctx.moveTo(cx,cy);
-
-    ctx.lineTo(ex,ey);
-
-    ctx.stroke();
-
-    ctx.setLineDash([]);
-
-    ctx.fillStyle = "#ff9f0a";
-
-    ctx.beginPath();
-
-    ctx.arc(ex,ey,12,0,Math.PI*2);
 
     ctx.fill();
 
-    ctx.fillStyle = "#fff";
+    ctx.strokeStyle =
 
-    ctx.font =
+        "#fff";
 
-      "700 14px -apple-system";
+    ctx.lineWidth =
 
-    ctx.textAlign = "center";
+        3;
 
-    ctx.fillText(
+    ctx.stroke();
 
-      "AUTO",
+    /* AUTO */
 
-      ex,
+    if(
 
-      ey-18
+        returnMode
 
-    );
+        &&
 
-  }
+        current
 
-  ctx.restore();
+        &&
+
+        car
+
+    ){
+
+        const b =
+
+            bearingDeg(
+
+                current.lat,
+
+                current.lng,
+
+                car.lat,
+
+                car.lng
+
+            );
+
+        let rel;
+
+        if(
+
+            phoneHeading === null
+
+        ){
+
+            rel = b;
+
+        }
+
+        else{
+
+            rel =
+
+                normalizeSigned(
+
+                    b
+
+                    -
+
+                    phoneHeading
+
+                );
+
+        }
+
+        const ang =
+
+            (
+
+                rel
+
+                -
+
+                90
+
+            )
+
+            *
+
+            Math.PI
+
+            /
+
+            180;
+
+        const edgeR =
+
+            maxR *
+
+            0.88;
+
+        const ex =
+
+            cx
+
+            +
+
+            Math.cos(ang)
+
+            *
+
+            edgeR;
+
+        const ey =
+
+            cy
+
+            +
+
+            Math.sin(ang)
+
+            *
+
+            edgeR;
+
+        /*
+
+           LINIA PROSTA:
+
+           TY -> AUTO
+
+        */
+
+        ctx.strokeStyle =
+
+            "#ff453a";
+
+        ctx.lineWidth =
+
+            5;
+
+        ctx.setLineDash(
+
+            [12,8]
+
+        );
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+
+            cx,
+
+            cy
+
+        );
+
+        ctx.lineTo(
+
+            ex,
+
+            ey
+
+        );
+
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+
+        /* AUTO */
+
+        ctx.fillStyle =
+
+            "#ff9f0a";
+
+        ctx.beginPath();
+
+        ctx.arc(
+
+            ex,
+
+            ey,
+
+            12,
+
+            0,
+
+            Math.PI*2
+
+        );
+
+        ctx.fill();
+
+        ctx.fillStyle =
+
+            "#fff";
+
+        ctx.font =
+
+            "700 14px -apple-system";
+
+        ctx.textAlign =
+
+            "center";
+
+        ctx.fillText(
+
+            "AUTO",
+
+            ex,
+
+            ey-18
+
+        );
+
+    }
+
+    ctx.restore();
 
 }
 
+/* ===============================
+
+   GPS
+
+================================ */
+
 function gpsUpdate(pos){
 
-  current = {
+    current = {
 
-    lat:pos.coords.latitude,
+        lat:
 
-    lng:pos.coords.longitude,
+            pos.coords.latitude,
 
-    accuracy:pos.coords.accuracy
+        lng:
 
-  };
+            pos.coords.longitude,
 
-  updateUI();
+        accuracy:
+
+            pos.coords.accuracy
+
+    };
+
+    updateUI();
 
 }
 
 function gpsError(err){
 
-  $("status").textContent =
+    $("status").textContent =
 
-    "Błąd GPS: " +
+        "Błąd GPS: "
 
-    err.message;
+        +
+
+        err.message;
+
+}
+
+if(
+
+    "geolocation"
+
+    in navigator
+
+){
+
+    navigator
+
+    .geolocation
+
+    .watchPosition(
+
+        gpsUpdate,
+
+        gpsError,
+
+        {
+
+            enableHighAccuracy:
+
+                true,
+
+            maximumAge:
+
+                0,
+
+            timeout:
+
+                15000
+
+        }
+
+    );
 
 }
 
-if("geolocation" in navigator){
+else{
 
-  navigator.geolocation.watchPosition(
+    $("status").textContent =
 
-    gpsUpdate,
-
-    gpsError,
-
-    {
-
-      enableHighAccuracy:true,
-
-      maximumAge:0,
-
-      timeout:15000
-
-    }
-
-  );
-
-}else{
-
-  $("status").textContent =
-
-    "Brak obsługi GPS.";
+        "Brak obsługi GPS.";
 
 }
+
+/* ===============================
+
+   KOMPAS
+
+================================ */
 
 function compassUpdate(e){
 
-  let heading = null;
+    let heading =
 
-  if(
+        null;
 
-    typeof e.webkitCompassHeading
+    /*
 
-    === "number"
+       iPhone Safari
 
-  ){
-
-    heading =
-
-      e.webkitCompassHeading;
-
-  }else if(
-
-    typeof e.alpha
-
-    === "number"
-
-  ){
-
-    heading =
-
-      360 - e.alpha;
-
-  }
-
-  if(heading===null)
-
-    return;
-
-  phoneHeading =
-
-    (heading+360)%360;
-
-  updateUI();
-
-}
-
-async function startCompass(){
-
-  if(orientationStarted)
-
-    return;
-
-  orientationStarted = true;
-
-  try{
+    */
 
     if(
 
-      typeof DeviceOrientationEvent
+        typeof
 
-      !== "undefined"
+        e.webkitCompassHeading
 
-      &&
+        ===
 
-      typeof
-
-      DeviceOrientationEvent.requestPermission
-
-      === "function"
+        "number"
 
     ){
 
-      const p =
+        heading =
 
-        await
+            e.webkitCompassHeading;
 
-        DeviceOrientationEvent
+    }
 
-        .requestPermission();
+    /*
 
-      if(p !== "granted"){
+       Inne urządzenia
 
-        orientationStarted = false;
+    */
 
-        $("hint").textContent =
+    else if(
 
-          "Brak zgody na kompas. Włącz dostęp do ruchu i orientacji.";
+        typeof
+
+        e.alpha
+
+        ===
+
+        "number"
+
+    ){
+
+        heading =
+
+            360
+
+            -
+
+            e.alpha;
+
+    }
+
+    if(
+
+        heading === null
+
+    ){
 
         return;
 
-      }
-
     }
 
-    window.addEventListener(
+    phoneHeading =
 
-      "deviceorientation",
+        (
 
-      compassUpdate,
+            heading
 
-      true
+            +
 
-    );
+            360
 
-  }catch(e){
+        )
 
-    orientationStarted = false;
+        %
 
-    $("hint").textContent =
+        360;
 
-      "Nie udało się uruchomić kompasu.";
-
-  }
+    updateUI();
 
 }
 
-$("park").addEventListener(
+/* ===============================
 
-  "click",
+   START KOMPASU
 
-  ()=>{
+================================ */
 
-    if(!current){
-
-      alert(
-
-        "Poczekaj, aż GPS złapie pozycję."
-
-      );
-
-      return;
-
-    }
-
-    car = {
-
-      lat:current.lat,
-
-      lng:current.lng
-
-    };
-
-    localStorage.setItem(
-
-      "carPosition",
-
-      JSON.stringify(car)
-
-    );
-
-    returnMode = false;
-
-    $("park").style.display =
-
-      "none";
-
-    $("compassArrow").style.display =
-
-      "none";
-
-    $("north").style.display =
-
-      "none";
-
-    updateUI();
-
-  }
-
-);
-
-$("back").addEventListener(
-
-  "click",
-
-  async ()=>{
-
-    if(!car){
-
-      alert(
-
-        "Najpierw naciśnij ZAPARKOWAŁEM."
-
-      );
-
-      return;
-
-    }
-
-    if(!current){
-
-      alert(
-
-        "Czekam na GPS."
-
-      );
-
-      return;
-
-    }
-
-    await startCompass();
-
-    returnMode = true;
-
-    updateUI();
-
-  }
-
-);
-
-$("reset").addEventListener(
-
-  "click",
-
-  ()=>{
+async function startCompass(){
 
     if(
 
-      !confirm(
-
-        "Usunąć zapisane miejsce auta?"
-
-      )
+        orientationStarted
 
     ){
 
-      return;
+        return;
 
     }
 
-    localStorage.removeItem(
+    try{
 
-      "carPosition"
+        /*
 
-    );
+           iPhone wymaga zgody
 
-    car = null;
+           po kliknięciu przycisku.
 
-    returnMode = false;
+        */
 
-    $("park").style.display = "";
+        if(
 
-    $("compassArrow").style.display =
+            typeof
 
-      "none";
+            DeviceOrientationEvent
 
-    $("north").style.display =
+            !==
 
-      "none";
+            "undefined"
 
-    updateUI();
+            &&
 
-  }
+            typeof
+
+            DeviceOrientationEvent
+
+            .requestPermission
+
+            ===
+
+            "function"
+
+        ){
+
+            const p =
+
+                await
+
+                DeviceOrientationEvent
+
+                .requestPermission();
+
+            if(
+
+                p !== "granted"
+
+            ){
+
+                $("hint")
+
+                .textContent =
+
+                    "Brak zgody na kompas.";
+
+                return;
+
+            }
+
+        }
+
+        window.addEventListener(
+
+            "deviceorientation",
+
+            compassUpdate,
+
+            true
+
+        );
+
+        orientationStarted =
+
+            true;
+
+    }
+
+    catch(e){
+
+        $("hint")
+
+        .textContent =
+
+            "Nie udało się uruchomić kompasu.";
+
+    }
+
+}
+
+/* ===============================
+
+   ZAPARKOWAŁEM
+
+================================ */
+
+$("park")
+
+.addEventListener(
+
+    "click",
+
+    () => {
+
+        if(!current){
+
+            alert(
+
+                "Poczekaj, aż GPS złapie pozycję."
+
+            );
+
+            return;
+
+        }
+
+        car = {
+
+            lat:
+
+                current.lat,
+
+            lng:
+
+                current.lng
+
+        };
+
+        /*
+
+           ZAPIS DO PAMIĘCI TELEFONU
+
+        */
+
+        localStorage.setItem(
+
+            "carPosition",
+
+            JSON.stringify(
+
+                car
+
+            )
+
+        );
+
+        returnMode =
+
+            false;
+
+        /*
+
+           Po zapisaniu auta
+
+           przycisk znika.
+
+        */
+
+        $("park")
+
+        .style
+
+        .display =
+
+            "none";
+
+        $("compassArrow")
+
+        .style
+
+        .display =
+
+            "none";
+
+        $("front")
+
+        .style
+
+        .display =
+
+            "none";
+
+        updateUI();
+
+    }
+
+);
+
+/* ===============================
+
+   WRÓĆ
+
+================================ */
+
+$("back")
+
+.addEventListener(
+
+    "click",
+
+    async () => {
+
+        if(!car){
+
+            alert(
+
+                "Najpierw naciśnij ZAPARKOWAŁEM."
+
+            );
+
+            return;
+
+        }
+
+        if(!current){
+
+            alert(
+
+                "Czekam na GPS."
+
+            );
+
+            return;
+
+        }
+
+        await startCompass();
+
+        returnMode =
+
+            true;
+
+        updateUI();
+
+    }
+
+);
+
+/* ===============================
+
+   RESET
+
+================================ */
+
+$("reset")
+
+.addEventListener(
+
+    "click",
+
+    () => {
+
+        if(
+
+            !confirm(
+
+                "Usunąć zapisane miejsce auta?"
+
+            )
+
+        ){
+
+            return;
+
+        }
+
+        localStorage.removeItem(
+
+            "carPosition"
+
+        );
+
+        car =
+
+            null;
+
+        returnMode =
+
+            false;
+
+        $("park")
+
+        .style
+
+        .display =
+
+            "";
+
+        $("compassArrow")
+
+        .style
+
+        .display =
+
+            "none";
+
+        $("front")
+
+        .style
+
+        .display =
+
+            "none";
+
+        updateUI();
+
+    }
 
 );
 
 updateUI();
+
+</script>
+
+<!-- =====================================
+
+     OFFLINE SERVICE WORKER
+
+====================================== -->
+
+<script>
+
+if(
+
+    "serviceWorker"
+
+    in navigator
+
+){
+
+    window.addEventListener(
+
+        "load",
+
+        () => {
+
+            navigator
+
+            .serviceWorker
+
+            .register(
+
+                "./sw.js"
+
+            )
+
+            .then(() => {
+
+                console.log(
+
+                    "Tryb offline aktywny."
+
+                );
+
+            })
+
+            .catch(
+
+                error => {
+
+                    console.log(
+
+                        "Service Worker:",
+
+                        error
+
+                    );
+
+                }
+
+            );
+
+        }
+
+    );
+
+}
 
 </script>
 
