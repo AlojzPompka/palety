@@ -1,0 +1,9 @@
+{
+  "name": "Grzyby - Powrót do auta",
+  "short_name": "Grzyby",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0f0c",
+  "theme_color": "#0b0f0c"
+}
