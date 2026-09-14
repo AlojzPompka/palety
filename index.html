@@ -6,199 +6,93 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport"
-
-      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<title>Grzyby – Auto</title>
-
-<link rel="stylesheet"
-
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<title>Grzyby – powrót do auta</title>
 
 <style>
 
-html, body, #map {
+:root{
 
-    height:100%;
+  --bg:#0b0f0c; --panel:rgba(10,14,11,.90); --text:#fff; --muted:#aeb7b0;
 
-    width:100%;
-
-    margin:0;
+  --green:#31d158; --orange:#ff9f0a; --red:#ff453a; --blue:#0a84ff;
 
 }
 
-body {
+*{box-sizing:border-box}
 
-    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
 
-    background:#111;
+#scene{position:fixed;inset:0;background:
 
-    overflow:hidden;
+ radial-gradient(circle at center,rgba(255,255,255,.06) 0 1px,transparent 1.5px) 0 0/28px 28px,
 
-}
+ linear-gradient(#111813,#0b0f0c)}
 
-#map {
+canvas{position:absolute;inset:0;width:100%;height:100%}
 
-    position:absolute;
+#top{
 
-    inset:0;
+  position:fixed;z-index:5;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;
 
-}
-
-/* PANEL */
-
-#panel {
-
-    position:fixed;
-
-    z-index:9999;
-
-    left:10px;
-
-    right:10px;
-
-    bottom:20px;
-
-    background:rgba(0,0,0,.86);
-
-    color:white;
-
-    padding:12px;
-
-    border-radius:18px;
-
-    backdrop-filter:blur(10px);
-
-    -webkit-backdrop-filter:blur(10px);
+  background:var(--panel);border-radius:18px;padding:12px 14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
 
 }
 
-#status {
+#status{font-size:13px;color:var(--muted);text-align:center}
 
-    text-align:center;
+#distance{font-size:32px;font-weight:800;text-align:center;margin-top:3px}
 
-    font-size:14px;
+#hint{font-size:13px;color:var(--muted);text-align:center;margin-top:4px}
 
-    margin-bottom:3px;
+#bottom{
 
-}
+  position:fixed;z-index:5;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));
 
-#distance {
-
-    text-align:center;
-
-    font-size:29px;
-
-    font-weight:800;
+  background:var(--panel);border-radius:18px;padding:10px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
 
 }
 
-/* STRZAŁKA */
+.row{display:flex;gap:8px}
 
-#arrowBox {
+button{
 
-    display:none;
-
-    text-align:center;
-
-    height:100px;
-
-    position:relative;
+  flex:1;border:0;border-radius:14px;padding:15px 8px;font-size:16px;font-weight:800
 
 }
 
-#arrow {
+#park{background:var(--green);color:#001a07}
 
-    position:absolute;
+#back{background:var(--orange);color:#1d0d00}
 
-    left:50%;
+#reset{background:var(--red);color:white}
 
-    top:50%;
+#compassArrow{
 
-    width:70px;
+  position:fixed;z-index:4;left:50%;top:50%;width:86px;height:86px;margin:-43px 0 0 -43px;
 
-    height:70px;
+  display:none;align-items:center;justify-content:center;font-size:72px;line-height:1;
 
-    margin-left:-35px;
-
-    margin-top:-35px;
-
-    font-size:68px;
-
-    line-height:70px;
-
-    transform-origin:50% 50%;
-
-    transition:
-
-        transform .08s linear;
-
-    will-change:transform;
+  transform-origin:50% 50%;filter:drop-shadow(0 3px 10px rgba(0,0,0,.7))
 
 }
 
-#directionText {
+#north{
 
-    font-size:13px;
+  position:fixed;z-index:4;left:50%;top:calc(50% - 122px);transform:translateX(-50%);
 
-    opacity:.8;
-
-}
-
-/* PRZYCISKI */
-
-.buttons {
-
-    display:flex;
-
-    gap:8px;
-
-    margin-top:8px;
+  font-size:12px;color:var(--muted);display:none
 
 }
 
-button {
+.badge{
 
-    flex:1;
-
-    border:0;
-
-    border-radius:13px;
-
-    padding:15px 5px;
-
-    font-size:16px;
-
-    font-weight:800;
-
-}
-
-#park {
-
-    background:#2ecc71;
-
-    color:#000;
-
-}
-
-#back {
-
-    background:#ff9500;
-
-    color:#000;
-
-}
-
-#reset {
-
-    background:#e74c3c;
-
-    color:#fff;
+  display:inline-block;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.08);margin-left:5px
 
 }
 
@@ -208,675 +102,433 @@ button {
 
 <body>
 
-<div id="map"></div>
+<div id="scene"><canvas id="radar"></canvas></div>
 
-<div id="panel">
+<div id="top">
 
-    <div id="status">
+  <div id="status">Czekam na GPS…</div>
 
-        Czekam na GPS…
+  <div id="distance">—</div>
 
-    </div>
-
-    <div id="distance">
-
-        —
-
-    </div>
-
-    <div id="arrowBox">
-
-        <div id="arrow">
-
-            ↑
-
-        </div>
-
-    </div>
-
-    <div id="directionText"
-
-         style="display:none;text-align:center">
-
-        Kierunek do auta
-
-    </div>
-
-    <div class="buttons">
-
-        <button id="park">
-
-            🚗 ZAPARKOWAŁEM
-
-        </button>
-
-        <button id="back">
-
-            ↩️ WRÓĆ
-
-        </button>
-
-        <button id="reset">
-
-            RESET
-
-        </button>
-
-    </div>
+  <div id="hint">Działa bez internetu po otwarciu strony. GPS i kompas nie wymagają sieci.</div>
 
 </div>
 
-<script
+<div id="north">PRZÓD TELEFONU</div>
 
-src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+<div id="compassArrow">↑</div>
 
-</script>
+<div id="bottom">
+
+  <div class="row">
+
+    <button id="park">🚗 ZAPARKOWAŁEM</button>
+
+    <button id="back">↩️ WRÓĆ</button>
+
+    <button id="reset">RESET</button>
+
+  </div>
+
+</div>
 
 <script>
 
-/* =========================================
+"use strict";
 
-   MAPA
+const $ = id => document.getElementById(id);
 
-========================================= */
+const canvas = $("radar");
 
-const map = L.map(
-
-    "map",
-
-    {
-
-        zoomControl:false
-
-    }
-
-).setView([52,19],6);
-
-L.tileLayer(
-
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
-    {
-
-        maxZoom:19,
-
-        attribution:"© OpenStreetMap"
-
-    }
-
-).addTo(map);
-
-/* =========================================
-
-   ZMIENNE
-
-========================================= */
+const ctx = canvas.getContext("2d");
 
 let current = null;
 
-let car =
-
-    JSON.parse(
-
-        localStorage.getItem("carPosition")
-
-        || "null"
-
-    );
-
-let userMarker = null;
-
-let carMarker = null;
-
-let returnLine = null;
+let car = JSON.parse(localStorage.getItem("carPosition") || "null");
 
 let returnMode = false;
 
-/*
-
-Kierunek, w którym skierowany
-
-jest telefon.
-
-0   = północ
-
-90  = wschód
-
-180 = południe
-
-270 = zachód
-
-*/
-
 let phoneHeading = null;
 
-/* =========================================
+let orientationStarted = false;
 
-   WCZYTANIE AUTA
+function resizeCanvas(){
 
-========================================= */
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
 
-if(car){
+  canvas.width = innerWidth * dpr;
 
-    carMarker =
+  canvas.height = innerHeight * dpr;
 
-        L.marker(
+  canvas.style.width = innerWidth + "px";
 
-            [car.lat,car.lng]
+  canvas.style.height = innerHeight + "px";
 
-        ).addTo(map);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
 
-    carMarker.bindPopup(
-
-        "🚗 TWOJE AUTO"
-
-    );
-
-    /*
-
-    Jeżeli auto jest już zapisane,
-
-    nie można przypadkiem
-
-    zapisać go drugi raz.
-
-    */
-
-    document.getElementById(
-
-        "park"
-
-    ).style.display =
-
-        "none";
+  drawRadar();
 
 }
 
-/* =========================================
+addEventListener("resize", resizeCanvas);
 
-   ODLEGŁOŚĆ
+resizeCanvas();
 
-========================================= */
+if(car) $("park").style.display = "none";
 
-function getDistance(
+function distanceM(lat1, lon1, lat2, lon2){
 
-    lat1,
+  const R = 6371000;
 
-    lon1,
+  const p1 = lat1*Math.PI/180, p2 = lat2*Math.PI/180;
 
-    lat2,
+  const dp = (lat2-lat1)*Math.PI/180, dl = (lon2-lon1)*Math.PI/180;
 
-    lon2
+  const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
 
-){
-
-    const R = 6371000;
-
-    const p1 =
-
-        lat1 * Math.PI / 180;
-
-    const p2 =
-
-        lat2 * Math.PI / 180;
-
-    const dp =
-
-        (lat2-lat1) *
-
-        Math.PI / 180;
-
-    const dl =
-
-        (lon2-lon1) *
-
-        Math.PI / 180;
-
-    const a =
-
-        Math.sin(dp/2) *
-
-        Math.sin(dp/2)
-
-        +
-
-        Math.cos(p1) *
-
-        Math.cos(p2) *
-
-        Math.sin(dl/2) *
-
-        Math.sin(dl/2);
-
-    return R * 2 *
-
-        Math.atan2(
-
-            Math.sqrt(a),
-
-            Math.sqrt(1-a)
-
-        );
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
 }
 
-/* =========================================
+function bearingDeg(lat1, lon1, lat2, lon2){
 
-   KIERUNEK GPS DO AUTA
+  const p1 = lat1*Math.PI/180, p2 = lat2*Math.PI/180;
 
-   Wynik:
+  const dl = (lon2-lon1)*Math.PI/180;
 
-   0   północ
+  const y = Math.sin(dl)*Math.cos(p2);
 
-   90  wschód
+  const x = Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
 
-   180 południe
-
-========================================= */
-
-function bearingToCar(){
-
-    if(!current || !car)
-
-        return null;
-
-    const lat1 =
-
-        current.lat *
-
-        Math.PI/180;
-
-    const lat2 =
-
-        car.lat *
-
-        Math.PI/180;
-
-    const dLon =
-
-        (car.lng-current.lng) *
-
-        Math.PI/180;
-
-    const y =
-
-        Math.sin(dLon) *
-
-        Math.cos(lat2);
-
-    const x =
-
-        Math.cos(lat1) *
-
-        Math.sin(lat2)
-
-        -
-
-        Math.sin(lat1) *
-
-        Math.cos(lat2) *
-
-        Math.cos(dLon);
-
-    let bearing =
-
-        Math.atan2(y,x) *
-
-        180/Math.PI;
-
-    return (
-
-        bearing + 360
-
-    ) % 360;
+  return (Math.atan2(y,x)*180/Math.PI + 360) % 360;
 
 }
 
-/* =========================================
+function normalizeSigned(a){
 
-   STRZAŁKA
+  a = ((a + 180) % 360 + 360) % 360 - 180;
 
-   TO JEST NAJWAŻNIEJSZA CZĘŚĆ.
+  return a;
 
-   kierunek auta
+}
 
-   MINUS
+function updateUI(){
 
-   kierunek telefonu
+  if(!current){
 
-   daje kierunek auta
+    $("status").textContent = "Czekam na GPS…";
 
-   względem CIEBIE.
+    return;
 
-========================================= */
+  }
+
+  $("status").innerHTML =
+
+    `GPS ±${Math.round(current.accuracy)} m` +
+
+    (phoneHeading!==null
+
+      ? ` <span class="badge">kompas OK</span>`
+
+      : ` <span class="badge">kompas —</span>`);
+
+  if(car && returnMode){
+
+    const d = distanceM(current.lat,current.lng,car.lat,car.lng);
+
+    $("distance").textContent =
+
+      d >= 1000
+
+        ? `🚗 ${(d/1000).toFixed(2)} km`
+
+        : `🚗 ${Math.round(d)} m`;
+
+    $("hint").textContent =
+
+      "Strzałka pokazuje auto względem kierunku telefonu.";
+
+  } else if(car){
+
+    $("distance").textContent = "🚗 AUTO ZAPISANE";
+
+    $("hint").textContent =
+
+      "Możesz wygasić ekran. Gdy wracasz, otwórz stronę i naciśnij WRÓĆ.";
+
+  } else {
+
+    $("distance").textContent = "—";
+
+    $("hint").textContent =
+
+      "Przy samochodzie naciśnij ZAPARKOWAŁEM.";
+
+  }
+
+  updateArrow();
+
+  drawRadar();
+
+}
 
 function updateArrow(){
 
-    if(!returnMode)
+  if(!returnMode || !car || !current || phoneHeading===null){
 
-        return;
+    $("compassArrow").style.display =
 
-    if(!current || !car)
+      returnMode ? "flex" : "none";
 
-        return;
+    $("north").style.display =
 
-    if(phoneHeading === null){
+      returnMode ? "block" : "none";
 
-        document.getElementById(
+    if(returnMode && phoneHeading===null){
 
-            "directionText"
+      $("compassArrow").style.transform =
 
-        ).innerText =
+        "rotate(0deg)";
 
-            "Czekam na kompas…";
+      $("hint").textContent =
 
-        return;
+        "Czekam na kompas iPhone'a…";
 
     }
 
-    const targetBearing =
+    return;
 
-        bearingToCar();
+  }
 
-    /*
+  const target =
 
-    Przykład:
+    bearingDeg(
 
-    Auto = północ = 0°
+      current.lat,
 
-    Patrzysz na północ = 0°
+      current.lng,
 
-    0 - 0 = 0
+      car.lat,
 
-    STRZAŁKA ↑
+      car.lng
 
-    Patrzysz na południe = 180°
+    );
 
-    0 - 180 = -180
+  const relative =
 
-    STRZAŁKA ↓
+    normalizeSigned(
 
-    */
+      target - phoneHeading
 
-    let relative =
+    );
 
-        targetBearing -
+  $("compassArrow").style.display = "flex";
 
-        phoneHeading;
+  $("north").style.display = "block";
 
-    /*
+  $("compassArrow").style.transform =
 
-    Normalizacja kąta
-
-    */
-
-    relative =
-
-        (
-
-            relative +
-
-            360
-
-        ) % 360;
-
-    document.getElementById(
-
-        "arrow"
-
-    ).style.transform =
-
-        "rotate(" +
-
-        relative +
-
-        "deg)";
-
-    document.getElementById(
-
-        "directionText"
-
-    ).innerText =
-
-        "Kierunek do auta";
+    `rotate(${relative}deg)`;
 
 }
 
-/* =========================================
+function drawRadar(){
 
-   LINIA PROSTA DO AUTA
+  const w = innerWidth;
 
-========================================= */
+  const h = innerHeight;
 
-function updateReturn(){
+  ctx.clearRect(0,0,w,h);
 
-    if(!returnMode)
+  const cx = w/2;
 
-        return;
+  const cy = h/2;
 
-    if(!current || !car)
+  const maxR = Math.min(w,h)*0.36;
 
-        return;
+  ctx.save();
 
-    const points = [
+  ctx.strokeStyle =
 
-        [
+    "rgba(255,255,255,.14)";
 
-            current.lat,
+  ctx.lineWidth = 1;
 
-            current.lng
+  [0.33,0.66,1].forEach(k=>{
 
-        ],
+    ctx.beginPath();
 
-        [
+    ctx.arc(
 
-            car.lat,
+      cx,
 
-            car.lng
+      cy,
 
-        ]
+      maxR*k,
 
-    ];
+      0,
 
-    if(!returnLine){
+      Math.PI*2
 
-        returnLine =
+    );
 
-            L.polyline(
+    ctx.stroke();
 
-                points,
+  });
 
-                {
+  ctx.beginPath();
 
-                    color:"red",
+  ctx.moveTo(cx-maxR,cy);
 
-                    weight:6,
+  ctx.lineTo(cx+maxR,cy);
 
-                    opacity:.9,
+  ctx.moveTo(cx,cy-maxR);
 
-                    dashArray:"12,8"
+  ctx.lineTo(cx,cy+maxR);
 
-                }
+  ctx.stroke();
 
-            ).addTo(map);
+  ctx.fillStyle = "#0a84ff";
 
-    }else{
+  ctx.beginPath();
 
-        returnLine.setLatLngs(
+  ctx.arc(cx,cy,8,0,Math.PI*2);
 
-            points
+  ctx.fill();
 
-        );
+  ctx.strokeStyle = "#fff";
 
-    }
+  ctx.lineWidth = 3;
 
-    /* ODLEGŁOŚĆ */
+  ctx.stroke();
 
-    const d =
+  if(returnMode && current && car){
 
-        getDistance(
+    const b =
 
-            current.lat,
+      bearingDeg(
 
-            current.lng,
+        current.lat,
 
-            car.lat,
+        current.lng,
 
-            car.lng
+        car.lat,
 
-        );
+        car.lng
 
-    if(d >= 1000){
+      );
 
-        document.getElementById(
+    const rel =
 
-            "distance"
+      phoneHeading===null
 
-        ).innerText =
+        ? b
 
-            "🚗 " +
+        : normalizeSigned(
 
-            (d/1000).toFixed(2) +
+            b-phoneHeading
 
-            " km";
+          );
 
-    }else{
+    const ang =
 
-        document.getElementById(
+      (rel-90) *
 
-            "distance"
+      Math.PI/180;
 
-        ).innerText =
+    const edgeR =
 
-            "🚗 " +
+      maxR*0.88;
 
-            Math.round(d) +
+    const ex =
 
-            " m";
+      cx +
 
-    }
+      Math.cos(ang)*edgeR;
 
-    updateArrow();
+    const ey =
+
+      cy +
+
+      Math.sin(ang)*edgeR;
+
+    ctx.strokeStyle = "#ff453a";
+
+    ctx.lineWidth = 5;
+
+    ctx.setLineDash([12,8]);
+
+    ctx.beginPath();
+
+    ctx.moveTo(cx,cy);
+
+    ctx.lineTo(ex,ey);
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "#ff9f0a";
+
+    ctx.beginPath();
+
+    ctx.arc(ex,ey,12,0,Math.PI*2);
+
+    ctx.fill();
+
+    ctx.fillStyle = "#fff";
+
+    ctx.font =
+
+      "700 14px -apple-system";
+
+    ctx.textAlign = "center";
+
+    ctx.fillText(
+
+      "AUTO",
+
+      ex,
+
+      ey-18
+
+    );
+
+  }
+
+  ctx.restore();
 
 }
-
-/* =========================================
-
-   GPS
-
-========================================= */
 
 function gpsUpdate(pos){
 
-    const lat =
+  current = {
 
-        pos.coords.latitude;
+    lat:pos.coords.latitude,
 
-    const lng =
+    lng:pos.coords.longitude,
 
-        pos.coords.longitude;
+    accuracy:pos.coords.accuracy
 
-    const accuracy =
+  };
 
-        pos.coords.accuracy;
-
-    current = {
-
-        lat:lat,
-
-        lng:lng,
-
-        accuracy:accuracy
-
-    };
-
-    document.getElementById(
-
-        "status"
-
-    ).innerText =
-
-        "GPS ±" +
-
-        Math.round(accuracy) +
-
-        " m";
-
-    if(!userMarker){
-
-        userMarker =
-
-            L.circleMarker(
-
-                [lat,lng],
-
-                {
-
-                    radius:9,
-
-                    color:"white",
-
-                    weight:3,
-
-                    fillColor:"#007aff",
-
-                    fillOpacity:1
-
-                }
-
-            ).addTo(map);
-
-        map.setView(
-
-            [lat,lng],
-
-            17
-
-        );
-
-    }else{
-
-        userMarker.setLatLng(
-
-            [lat,lng]
-
-        );
-
-    }
-
-    /*
-
-    Każda nowa pozycja GPS
-
-    aktualizuje:
-
-    - linię
-
-    - dystans
-
-    - kierunek
-
-    */
-
-    updateReturn();
+  updateUI();
 
 }
 
-function gpsError(error){
+function gpsError(err){
 
-    document.getElementById(
+  $("status").textContent =
 
-        "status"
+    "Błąd GPS: " +
 
-    ).innerText =
-
-        "Błąd GPS: " +
-
-        error.message;
+    err.message;
 
 }
 
-navigator.geolocation.watchPosition(
+if("geolocation" in navigator){
+
+  navigator.geolocation.watchPosition(
 
     gpsUpdate,
 
@@ -884,455 +536,253 @@ navigator.geolocation.watchPosition(
 
     {
 
-        enableHighAccuracy:true,
+      enableHighAccuracy:true,
 
-        maximumAge:0,
+      maximumAge:0,
 
-        timeout:15000
-
-    }
-
-);
-
-/* =========================================
-
-   KOMPAS IPHONE
-
-========================================= */
-
-function compassUpdate(event){
-
-    let heading = null;
-
-    /*
-
-    iPhone / Safari
-
-    webkitCompassHeading daje
-
-    bezpośrednio kierunek kompasu.
-
-    */
-
-    if(
-
-        typeof
-
-        event.webkitCompassHeading
-
-        === "number"
-
-    ){
-
-        heading =
-
-            event.webkitCompassHeading;
+      timeout:15000
 
     }
 
-    /*
+  );
 
-    Awaryjnie inne urządzenia
+}else{
 
-    */
+  $("status").textContent =
 
-    else if(
-
-        typeof event.alpha
-
-        === "number"
-
-    ){
-
-        heading =
-
-            360 -
-
-            event.alpha;
-
-    }
-
-    if(heading === null)
-
-        return;
-
-    phoneHeading =
-
-        (
-
-            heading +
-
-            360
-
-        ) % 360;
-
-    /*
-
-    TO POWODUJE CIĄGŁĄ
-
-    AKTUALIZACJĘ STRZAŁKI
-
-    PODCZAS OBRACANIA TELEFONU.
-
-    */
-
-    updateArrow();
+    "Brak obsługi GPS.";
 
 }
 
-/* =========================================
+function compassUpdate(e){
 
-   URUCHOMIENIE KOMPASU
+  let heading = null;
 
-========================================= */
+  if(
+
+    typeof e.webkitCompassHeading
+
+    === "number"
+
+  ){
+
+    heading =
+
+      e.webkitCompassHeading;
+
+  }else if(
+
+    typeof e.alpha
+
+    === "number"
+
+  ){
+
+    heading =
+
+      360 - e.alpha;
+
+  }
+
+  if(heading===null)
+
+    return;
+
+  phoneHeading =
+
+    (heading+360)%360;
+
+  updateUI();
+
+}
 
 async function startCompass(){
 
-    /*
+  if(orientationStarted)
 
-    iPhone wymaga, żeby pytanie
+    return;
 
-    o zgodę pojawiło się po
+  orientationStarted = true;
 
-    naciśnięciu przycisku.
-
-    */
+  try{
 
     if(
 
-        typeof DeviceOrientationEvent
+      typeof DeviceOrientationEvent
 
-        !== "undefined"
+      !== "undefined"
 
-        &&
+      &&
 
-        typeof
+      typeof
 
-        DeviceOrientationEvent.requestPermission
+      DeviceOrientationEvent.requestPermission
 
-        === "function"
+      === "function"
 
     ){
 
-        try{
+      const p =
 
-            const permission =
+        await
 
-                await
+        DeviceOrientationEvent
 
-                DeviceOrientationEvent
+        .requestPermission();
 
-                .requestPermission();
+      if(p !== "granted"){
 
-            if(
+        orientationStarted = false;
 
-                permission ===
+        $("hint").textContent =
 
-                "granted"
+          "Brak zgody na kompas. Włącz dostęp do ruchu i orientacji.";
 
-            ){
+        return;
 
-                window.addEventListener(
-
-                    "deviceorientation",
-
-                    compassUpdate,
-
-                    true
-
-                );
-
-            }else{
-
-                document.getElementById(
-
-                    "directionText"
-
-                ).innerText =
-
-                    "Brak dostępu do kompasu";
-
-            }
-
-        }catch(e){
-
-            document.getElementById(
-
-                "directionText"
-
-            ).innerText =
-
-                "Nie udało się uruchomić kompasu";
-
-        }
-
-    }else{
-
-        window.addEventListener(
-
-            "deviceorientation",
-
-            compassUpdate,
-
-            true
-
-        );
+      }
 
     }
 
+    window.addEventListener(
+
+      "deviceorientation",
+
+      compassUpdate,
+
+      true
+
+    );
+
+  }catch(e){
+
+    orientationStarted = false;
+
+    $("hint").textContent =
+
+      "Nie udało się uruchomić kompasu.";
+
+  }
+
 }
 
-/* =========================================
+$("park").addEventListener(
 
-   ZAPARKOWAŁEM
+  "click",
 
-========================================= */
-
-document.getElementById(
-
-    "park"
-
-).onclick =
-
-function(){
+  ()=>{
 
     if(!current){
 
-        alert(
+      alert(
 
-            "Poczekaj na GPS."
+        "Poczekaj, aż GPS złapie pozycję."
 
-        );
+      );
 
-        return;
+      return;
 
     }
 
     car = {
 
-        lat:current.lat,
+      lat:current.lat,
 
-        lng:current.lng
+      lng:current.lng
 
     };
 
-    /*
-
-    Trwały zapis punktu auta.
-
-    */
-
     localStorage.setItem(
 
-        "carPosition",
+      "carPosition",
 
-        JSON.stringify(car)
+      JSON.stringify(car)
 
     );
 
-    if(carMarker){
+    returnMode = false;
 
-        map.removeLayer(
+    $("park").style.display =
 
-            carMarker
+      "none";
 
-        );
+    $("compassArrow").style.display =
 
-    }
+      "none";
 
-    carMarker =
+    $("north").style.display =
 
-        L.marker(
+      "none";
 
-            [
+    updateUI();
 
-                car.lat,
+  }
 
-                car.lng
+);
 
-            ]
+$("back").addEventListener(
 
-        ).addTo(map);
+  "click",
 
-    carMarker
-
-        .bindPopup(
-
-            "🚗 AUTO ZAPISANE"
-
-        )
-
-        .openPopup();
-
-    /*
-
-    PO ZAPISANIU
-
-    PRZYCISK ZNIKA.
-
-    */
-
-    document.getElementById(
-
-        "park"
-
-    ).style.display =
-
-        "none";
-
-    document.getElementById(
-
-        "distance"
-
-    ).innerText =
-
-        "🚗 AUTO ZAPISANE";
-
-};
-
-/* =========================================
-
-   WRÓĆ
-
-========================================= */
-
-document.getElementById(
-
-    "back"
-
-).onclick =
-
-async function(){
+  async ()=>{
 
     if(!car){
 
-        alert(
+      alert(
 
-            "Najpierw zapisz auto."
+        "Najpierw naciśnij ZAPARKOWAŁEM."
 
-        );
+      );
 
-        return;
+      return;
 
     }
 
     if(!current){
 
-        alert(
+      alert(
 
-            "Czekam na GPS."
+        "Czekam na GPS."
 
-        );
+      );
 
-        return;
+      return;
 
     }
-
-    /*
-
-    Najpierw kompas.
-
-    */
 
     await startCompass();
 
     returnMode = true;
 
-    document.getElementById(
+    updateUI();
 
-        "arrowBox"
+  }
 
-    ).style.display =
+);
 
-        "block";
+$("reset").addEventListener(
 
-    document.getElementById(
+  "click",
 
-        "directionText"
-
-    ).style.display =
-
-        "block";
-
-    updateReturn();
-
-    /*
-
-    Pokazujemy na mapie
-
-    użytkownika i auto.
-
-    */
-
-    map.fitBounds(
-
-        [
-
-            [
-
-                current.lat,
-
-                current.lng
-
-            ],
-
-            [
-
-                car.lat,
-
-                car.lng
-
-            ]
-
-        ],
-
-        {
-
-            paddingTopLeft:
-
-                [50,50],
-
-            paddingBottomRight:
-
-                [50,250]
-
-        }
-
-    );
-
-};
-
-/* =========================================
-
-   RESET
-
-========================================= */
-
-document.getElementById(
-
-    "reset"
-
-).onclick =
-
-function(){
+  ()=>{
 
     if(
 
-        !confirm(
+      !confirm(
 
-            "Usunąć zapisane miejsce auta?"
+        "Usunąć zapisane miejsce auta?"
 
-        )
+      )
 
     ){
 
-        return;
+      return;
 
     }
 
     localStorage.removeItem(
 
-        "carPosition"
+      "carPosition"
 
     );
 
@@ -1340,71 +790,23 @@ function(){
 
     returnMode = false;
 
-    if(carMarker){
+    $("park").style.display = "";
 
-        map.removeLayer(
+    $("compassArrow").style.display =
 
-            carMarker
+      "none";
 
-        );
+    $("north").style.display =
 
-        carMarker = null;
+      "none";
 
-    }
+    updateUI();
 
-    if(returnLine){
+  }
 
-        map.removeLayer(
+);
 
-            returnLine
-
-        );
-
-        returnLine = null;
-
-    }
-
-    document.getElementById(
-
-        "arrowBox"
-
-    ).style.display =
-
-        "none";
-
-    document.getElementById(
-
-        "directionText"
-
-    ).style.display =
-
-        "none";
-
-    document.getElementById(
-
-        "distance"
-
-    ).innerText =
-
-        "—";
-
-    /*
-
-    Dopiero po RESET
-
-    można zapisać nowe auto.
-
-    */
-
-    document.getElementById(
-
-        "park"
-
-    ).style.display =
-
-        "block";
-
-};
+updateUI();
 
 </script>
 
