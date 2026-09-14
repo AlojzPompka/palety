@@ -1,215 +1,829 @@
 <!DOCTYPE html>
+
 <html lang="pl">
+
 <head>
+
 <meta charset="UTF-8">
-<title>Kalkulator załadunku naczepy</title>
+
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<title>Grzyby – powrót do auta</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
 <style>
-body {
-    font-family: Arial;
-    background:#f4f4f4;
-    text-align:center;
+
+html,body,#map {
+
+    height:100%;
+
+    width:100%;
+
     margin:0;
-    padding:0;
+
 }
-.container {
-    width:750px;
-    margin:30px auto;
-    padding:20px;
-    background:#fff;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
+
+body {
+
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+
+    background:#111;
+
 }
-h1 { margin-bottom:20px; }
-input { display:block; margin:10px auto; padding:8px; width:60%; font-size:16px; }
-button {
-    padding:10px 30px;
-    background:#2c7be5;
-    color:white;
-    border:none;
-    border-radius:5px;
-    font-size:16px;
-    cursor:pointer;
-}
-button:hover { background:#1a5fc1; }
-#result { margin-top:20px; font-size:16px; font-weight:bold; }
-#truck {
-    position:relative;
-    margin:20px auto;
-    width:680px; /* 1360 cm /2 */
-    height:150px; /* 250 cm /2 */
-    background:#ddd;
-    border:2px solid #999;
-}
-.pallet {
+
+#map {
+
     position:absolute;
-    border:1px solid #444;
-    box-sizing:border-box;
-    text-align:center;
-    font-size:12px;
+
+    inset:0;
+
+}
+
+#panel {
+
+    position:fixed;
+
+    z-index:9999;
+
+    left:10px;
+
+    right:10px;
+
+    bottom:20px;
+
+    background:rgba(0,0,0,.85);
+
     color:white;
-    line-height:1.2;
+
+    padding:12px;
+
+    border-radius:16px;
+
+    backdrop-filter:blur(10px);
+
+}
+
+#status {
+
+    text-align:center;
+
+    font-size:16px;
+
+    margin-bottom:8px;
+
+}
+
+#distance {
+
+    text-align:center;
+
+    font-size:28px;
+
     font-weight:bold;
+
+    margin-bottom:10px;
+
 }
-.pallet.euro { background:#2c7be5; }
-.pallet.w120 { background:#e52c2c; }
-.legend {
-    display:flex; justify-content:center; margin-top:10px;
+
+.buttons {
+
+    display:flex;
+
+    gap:8px;
+
 }
-.legend div { margin:0 15px; display:flex; align-items:center; }
-.legend span { width:20px; height:20px; display:inline-block; margin-right:5px; }
+
+button {
+
+    flex:1;
+
+    border:0;
+
+    border-radius:12px;
+
+    padding:15px 5px;
+
+    font-size:16px;
+
+    font-weight:bold;
+
+}
+
+#park {
+
+    background:#2ecc71;
+
+}
+
+#back {
+
+    background:#ff9500;
+
+}
+
+#stop {
+
+    background:#e74c3c;
+
+    color:white;
+
+}
+
 </style>
+
 </head>
+
 <body>
-<div class="container">
-<h1>Kalkulator załadunku naczepy</h1>
-<label>Ilość palet EURO:</label>
-<input type="number" id="euro" placeholder="np. 26">
-<label>Ilość palet W 120x100:</label>
-<input type="number" id="w120" placeholder="np. 6">
-<button onclick="calculate()">Oblicz</button>
 
-<h2>Wynik:</h2>
-<div id="result"></div>
+<div id="map"></div>
 
-<h2>Wizualizacja naczepy:</h2>
-<div id="truck"></div>
+<div id="panel">
 
-<div class="legend">
-    <div><span style="background:#2c7be5;"></span> EURO</div>
-    <div><span style="background:#e52c2c;"></span> W 120x100</div>
+    <div id="status">
+
+        Czekam na GPS…
+
+    </div>
+
+    <div id="distance">
+
+        —
+
+    </div>
+
+    <div class="buttons">
+
+        <button id="park">
+
+            🚗 ZAPARKOWAŁEM
+
+        </button>
+
+        <button id="back">
+
+            ↩️ WRÓĆ
+
+        </button>
+
+        <button id="stop">
+
+            ✕ RESET
+
+        </button>
+
+    </div>
+
 </div>
-</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-function calculate() {
-    const euroTotal = parseInt(document.getElementById("euro").value)||0;
-    const wTotal = parseInt(document.getElementById("w120").value)||0;
-    const truckLength = 1360; // cm
 
-    // --- Dynamiczne dopasowanie jedynek w osi ---
-    let maxUnits = euroTotal; // maks ile może być jedynek
-    let bestConfig = null;
+const map = L.map("map").setView([52.0,19.0],6);
 
-    for(let units = Math.min(17,euroTotal); units>=0; units--){
-        let euroRem = euroTotal - units;
-        let wRem = wTotal;
-        let lengthUsed = units*80;
+L.tileLayer(
 
-        let rows3 = 0, rows2 = 0;
-        while(euroRem>0){
-            if(euroRem>=3 && lengthUsed+120<=truckLength){ rows3++; euroRem-=3; lengthUsed+=120; }
-            else if(euroRem>=2 && lengthUsed+80<=truckLength){ rows2++; euroRem-=2; lengthUsed+=80; }
-            else{ break; }
-        }
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 
-        let wUnits=0, wPairs=0;
-        while(wRem>0){
-            if(wRem>=2 && lengthUsed+100<=truckLength){ wPairs++; wRem-=2; lengthUsed+=100; }
-            else if(wRem>=1 && lengthUsed+100<=truckLength){ wUnits++; wRem-=1; lengthUsed+=100; }
-            else{ break; }
-        }
+    {
 
-        if(euroRem===0 && wRem===0){
-            bestConfig={units, rows3, rows2, wUnits, wPairs, lengthUsed};
-            break; // znaleziono konfigurację gdzie wszystkie mieszczą się
-        }
+        maxZoom:19,
+
+        attribution:"© OpenStreetMap"
+
     }
 
-    if(!bestConfig){
-        document.getElementById("result").innerHTML = "Nie da się zmieścić wszystkich palet w naczepie!";
-        document.getElementById("truck").innerHTML="";
+).addTo(map);
+
+let current = null;
+
+let userMarker = null;
+
+let carMarker = null;
+
+let returnLine = null;
+
+let returnMode = false;
+
+/*
+
+================================================
+
+WCZYTANIE ZAPISANEGO AUTA
+
+================================================
+
+*/
+
+let car = JSON.parse(
+
+    localStorage.getItem("carPosition") || "null"
+
+);
+
+if(car){
+
+    carMarker = L.marker([
+
+        car.lat,
+
+        car.lng
+
+    ]).addTo(map);
+
+    carMarker.bindPopup("🚗 TWOJE AUTO");
+
+}
+
+/*
+
+================================================
+
+ODLEGŁOŚĆ GPS
+
+================================================
+
+*/
+
+function distance(lat1,lon1,lat2,lon2){
+
+    const R = 6371000;
+
+    const p1 = lat1 * Math.PI/180;
+
+    const p2 = lat2 * Math.PI/180;
+
+    const dp =
+
+        (lat2-lat1) * Math.PI/180;
+
+    const dl =
+
+        (lon2-lon1) * Math.PI/180;
+
+    const a =
+
+        Math.sin(dp/2) *
+
+        Math.sin(dp/2) +
+
+        Math.cos(p1) *
+
+        Math.cos(p2) *
+
+        Math.sin(dl/2) *
+
+        Math.sin(dl/2);
+
+    return R * 2 *
+
+        Math.atan2(
+
+            Math.sqrt(a),
+
+            Math.sqrt(1-a)
+
+        );
+
+}
+
+/*
+
+================================================
+
+AKTUALIZACJA LINII POWROTU
+
+================================================
+
+*/
+
+function updateReturn(){
+
+    if(!returnMode) return;
+
+    if(!current) return;
+
+    if(!car) return;
+
+    const points = [
+
+        [
+
+            current.lat,
+
+            current.lng
+
+        ],
+
+        [
+
+            car.lat,
+
+            car.lng
+
+        ]
+
+    ];
+
+    if(!returnLine){
+
+        returnLine =
+
+            L.polyline(
+
+                points,
+
+                {
+
+                    color:"red",
+
+                    weight:6,
+
+                    dashArray:"10,8"
+
+                }
+
+            ).addTo(map);
+
+    } else {
+
+        returnLine.setLatLngs(points);
+
+    }
+
+    const d = distance(
+
+        current.lat,
+
+        current.lng,
+
+        car.lat,
+
+        car.lng
+
+    );
+
+    if(d >= 1000){
+
+        document.getElementById(
+
+            "distance"
+
+        ).innerText =
+
+            "🚗 " +
+
+            (d/1000).toFixed(2) +
+
+            " km";
+
+    } else {
+
+        document.getElementById(
+
+            "distance"
+
+        ).innerText =
+
+            "🚗 " +
+
+            Math.round(d) +
+
+            " m";
+
+    }
+
+}
+
+/*
+
+================================================
+
+GPS
+
+================================================
+
+*/
+
+function gpsUpdate(pos){
+
+    const lat =
+
+        pos.coords.latitude;
+
+    const lng =
+
+        pos.coords.longitude;
+
+    const accuracy =
+
+        pos.coords.accuracy;
+
+    current = {
+
+        lat,
+
+        lng,
+
+        accuracy
+
+    };
+
+    document.getElementById(
+
+        "status"
+
+    ).innerText =
+
+        "GPS ±" +
+
+        Math.round(accuracy) +
+
+        " m";
+
+    if(!userMarker){
+
+        userMarker =
+
+            L.circleMarker(
+
+                [lat,lng],
+
+                {
+
+                    radius:9,
+
+                    color:"white",
+
+                    weight:3,
+
+                    fillColor:"#007aff",
+
+                    fillOpacity:1
+
+                }
+
+            ).addTo(map);
+
+        map.setView(
+
+            [lat,lng],
+
+            17
+
+        );
+
+    } else {
+
+        userMarker.setLatLng(
+
+            [lat,lng]
+
+        );
+
+    }
+
+    updateReturn();
+
+}
+
+/*
+
+================================================
+
+BŁĄD GPS
+
+================================================
+
+*/
+
+function gpsError(err){
+
+    document.getElementById(
+
+        "status"
+
+    ).innerText =
+
+        "Błąd GPS: " +
+
+        err.message;
+
+}
+
+/*
+
+================================================
+
+URUCHOM GPS
+
+================================================
+
+*/
+
+navigator.geolocation.watchPosition(
+
+    gpsUpdate,
+
+    gpsError,
+
+    {
+
+        enableHighAccuracy:true,
+
+        maximumAge:0,
+
+        timeout:15000
+
+    }
+
+);
+
+/*
+
+================================================
+
+ZAPARKOWAŁEM
+
+================================================
+
+*/
+
+document.getElementById(
+
+    "park"
+
+).onclick = function(){
+
+    if(!current){
+
+        alert(
+
+            "Poczekaj chwilę na pozycję GPS."
+
+        );
+
         return;
+
     }
 
-    document.getElementById("result").innerHTML =
-        `EURO: ${bestConfig.units} jedynki, ${bestConfig.rows3} rzędy 3, ${bestConfig.rows2} rzędy 2<br>`+
-        `W 120x100: ${bestConfig.wUnits} jedynki, ${bestConfig.wPairs} pary<br>`+
-        `Zajęta długość: ${bestConfig.lengthUsed} / 1360 cm`;
+    car = {
 
-    drawTruck(bestConfig.units,bestConfig.rows3,bestConfig.rows2,bestConfig.wUnits,bestConfig.wPairs);
-}
+        lat:current.lat,
 
-// Wizualizacja z realistycznym rzędem 2 i 3
-function drawTruck(euroUnits, euroRows3, euroRows2, wUnits, wPairs){
-    const truck = document.getElementById("truck");
-    truck.innerHTML="";
-    const scale=0.5;
-    const truckWidthPx = 250*scale;
-    let x=0;
-    const euroY = (truckWidthPx - 80*scale)/2;
-    const wY = (truckWidthPx - 100*scale)/2 + 20;
+        lng:current.lng
 
-    // Jedynki EURO
-    for(let i=0;i<euroUnits;i++){
-        const div=document.createElement("div");
-        div.className="pallet euro";
-        div.style.width = 120*scale+"px";
-        div.style.height = 80*scale+"px";
-        div.style.left = x*scale+"px";
-        div.style.top = euroY+"px";
-        div.innerText="E";
-        truck.appendChild(div);
-        x+=80;
+    };
+
+    /*
+
+    ZAPISUJEMY AUTO W PAMIĘCI IPHONE'A
+
+    Dzięki temu możesz:
+
+    - wygasić ekran
+
+    - zamknąć stronę
+
+    - chodzić po lesie
+
+    - wrócić później
+
+    */
+
+    localStorage.setItem(
+
+        "carPosition",
+
+        JSON.stringify(car)
+
+    );
+
+    if(carMarker){
+
+        map.removeLayer(
+
+            carMarker
+
+        );
+
     }
 
-    // Rzędy 3 EURO
-    for(let i=0;i<euroRows3;i++){
-        for(let j=0;j<3;j++){
-            const div=document.createElement("div");
-            div.className="pallet euro";
-            div.style.width = 120*scale/3+"px";
-            div.style.height = 80*scale+"px";
-            div.style.left = x*scale + j*120*scale/3 + "px";
-            div.style.top = euroY+"px";
-            div.innerText="E";
-            truck.appendChild(div);
+    carMarker =
+
+        L.marker(
+
+            [
+
+                car.lat,
+
+                car.lng
+
+            ]
+
+        ).addTo(map);
+
+    carMarker
+
+        .bindPopup(
+
+            "🚗 AUTO ZAPISANE"
+
+        )
+
+        .openPopup();
+
+    returnMode = false;
+
+    if(returnLine){
+
+        map.removeLayer(
+
+            returnLine
+
+        );
+
+        returnLine = null;
+
+    }
+
+    document.getElementById(
+
+        "distance"
+
+    ).innerText =
+
+        "🚗 AUTO ZAPISANE";
+
+};
+
+/*
+
+================================================
+
+WRÓĆ DO AUTA
+
+================================================
+
+*/
+
+document.getElementById(
+
+    "back"
+
+).onclick = function(){
+
+    if(!car){
+
+        alert(
+
+            "Najpierw kliknij ZAPARKOWAŁEM."
+
+        );
+
+        return;
+
+    }
+
+    if(!current){
+
+        alert(
+
+            "Czekam na GPS."
+
+        );
+
+        return;
+
+    }
+
+    returnMode = true;
+
+    updateReturn();
+
+    /*
+
+    POKAŻ CAŁĄ TRASĘ:
+
+    TY -> AUTO
+
+    */
+
+    map.fitBounds(
+
+        [
+
+            [
+
+                current.lat,
+
+                current.lng
+
+            ],
+
+            [
+
+                car.lat,
+
+                car.lng
+
+            ]
+
+        ],
+
+        {
+
+            padding:[
+
+                50,
+
+                180
+
+            ]
+
         }
-        x+=120;
+
+    );
+
+};
+
+/*
+
+================================================
+
+RESET
+
+================================================
+
+*/
+
+document.getElementById(
+
+    "stop"
+
+).onclick = function(){
+
+    if(
+
+        !confirm(
+
+            "Usunąć zapisane miejsce auta?"
+
+        )
+
+    ){
+
+        return;
+
     }
 
-    // Rzędy 2 EURO
-    for(let i=0;i<euroRows2;i++){
-        for(let j=0;j<2;j++){
-            const div=document.createElement("div");
-            div.className="pallet euro";
-            div.style.width = 120*scale/2+"px";
-            div.style.height = 80*scale+"px";
-            div.style.left = x*scale + j*120*scale/2 + "px";
-            div.style.top = euroY+"px";
-            div.innerText="E";
-            truck.appendChild(div);
-        }
-        x+=80;
+    localStorage.removeItem(
+
+        "carPosition"
+
+    );
+
+    car = null;
+
+    returnMode = false;
+
+    if(carMarker){
+
+        map.removeLayer(
+
+            carMarker
+
+        );
+
+        carMarker = null;
+
     }
 
-    // Jedynki W
-    for(let i=0;i<wUnits;i++){
-        const div=document.createElement("div");
-        div.className="pallet w120";
-        div.style.width = 120*scale+"px";
-        div.style.height = 100*scale+"px";
-        div.style.left = x*scale+"px";
-        div.style.top = wY+"px";
-        div.innerText="W";
-        truck.appendChild(div);
-        x+=100;
+    if(returnLine){
+
+        map.removeLayer(
+
+            returnLine
+
+        );
+
+        returnLine = null;
+
     }
 
-    // Pary W (rzędy 2)
-    for(let i=0;i<wPairs;i++){
-        for(let j=0;j<2;j++){
-            const div=document.createElement("div");
-            div.className="pallet w120";
-            div.style.width = 120*scale/2+"px";
-            div.style.height = 100*scale+"px";
-            div.style.left = x*scale + j*120*scale/2 + "px";
-            div.style.top = wY+"px";
-            div.innerText="W";
-            truck.appendChild(div);
-        }
-        x+=100;
-    }
-}
+    document.getElementById(
+
+        "distance"
+
+    ).innerText = "—";
+
+};
+
 </script>
+
 </body>
+
 </html>
