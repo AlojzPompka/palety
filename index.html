@@ -1,13 +1,19 @@
 <!DOCTYPE html>
+
 <html lang="pl">
+
 <head>
+
 <meta charset="UTF-8">
 
 <meta name="viewport"
+
 content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
+
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <meta name="theme-color" content="#0b0f0c">
 
 <link rel="manifest" href="./manifest.webmanifest">
@@ -16,1129 +22,845 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 
 <style>
 
-*{
-    box-sizing:border-box;
+* {
+
+    box-sizing: border-box;
+
 }
 
-html,body{
-    margin:0;
-    width:100%;
-    height:100%;
-    overflow:hidden;
+html, body {
 
-    background:#0b0f0c;
-    color:white;
+    margin: 0;
 
-    font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
+    width: 100%;
+
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #0b0f0c;
+
+    color: white;
+
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
 }
 
-#scene{
-    position:fixed;
-    inset:0;
+#scene {
+
+    position: fixed;
+
+    inset: 0;
 
     background:
+
         radial-gradient(
+
             circle at center,
+
             rgba(255,255,255,.05) 0 1px,
+
             transparent 1.5px
-        )
-        0 0 / 28px 28px,
 
-        linear-gradient(
-            #111813,
-            #0b0f0c
-        );
+        ) 0 0 / 28px 28px,
+
+        linear-gradient(#111813,#0b0f0c);
+
 }
 
-#radar{
-    position:absolute;
-    inset:0;
+#radar {
 
-    width:100%;
-    height:100%;
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+
+    height: 100%;
+
 }
 
-#top{
-    position:fixed;
-    z-index:20;
+#top {
 
-    top:max(
-        12px,
-        env(safe-area-inset-top)
-    );
+    position: fixed;
 
-    left:12px;
-    right:12px;
+    z-index: 20;
 
-    padding:12px;
+    top: max(12px, env(safe-area-inset-top));
 
-    border-radius:18px;
+    left: 12px;
 
-    background:
-        rgba(8,12,9,.92);
+    right: 12px;
 
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
+    padding: 12px;
+
+    border-radius: 18px;
+
+    background: rgba(8,12,9,.92);
+
+    backdrop-filter: blur(12px);
+
+    -webkit-backdrop-filter: blur(12px);
+
 }
 
-#status{
-    text-align:center;
+#status {
 
-    font-size:13px;
+    text-align: center;
 
-    color:#adb5ae;
+    font-size: 13px;
+
+    color: #adb5ae;
+
 }
 
-#distance{
-    text-align:center;
+#distance {
 
-    font-size:34px;
-    font-weight:850;
+    text-align: center;
 
-    margin-top:3px;
+    font-size: 34px;
+
+    font-weight: 850;
+
+    margin-top: 3px;
+
 }
 
-#sensor{
-    text-align:center;
+#bearingText {
 
-    font-size:13px;
+    text-align: center;
 
-    color:#adb5ae;
+    font-size: 13px;
 
-    margin-top:3px;
+    color: #adb5ae;
+
+    margin-top: 3px;
+
 }
 
-#hint{
-    text-align:center;
+#hint {
 
-    font-size:13px;
+    text-align: center;
 
-    color:#adb5ae;
+    font-size: 13px;
 
-    margin-top:4px;
+    color: #adb5ae;
+
+    margin-top: 4px;
+
 }
 
+#north {
 
-/* =========================================
-   NIERUCHOMA STRZAŁKA
-========================================= */
+    position: fixed;
 
-#fixedArrow{
-    position:fixed;
+    z-index: 15;
 
-    z-index:15;
+    left: 50%;
 
-    left:50%;
+    top: calc(50% - 145px);
 
-    top:calc(50% - 105px);
+    transform: translateX(-50%);
 
-    transform:translateX(-50%);
+    display: none;
 
-    display:none;
+    text-align: center;
 
-    text-align:center;
+    pointer-events: none;
 
-    pointer-events:none;
 }
 
-#fixedArrow .arrow{
-    font-size:58px;
+#northArrow {
 
-    line-height:1;
+    font-size: 60px;
 
-    color:white;
+    line-height: .9;
 
-    filter:
-        drop-shadow(
-            0 3px 7px
-            rgba(0,0,0,.9)
-        );
+    font-weight: 300;
+
 }
 
-#fixedArrow .label{
-    font-size:11px;
+#northText {
 
-    font-weight:800;
+    margin-top: 4px;
 
-    color:#adb5ae;
+    font-size: 15px;
 
-    margin-top:2px;
+    font-weight: 900;
+
+    color: white;
+
 }
 
+#bottom {
 
-/* =========================================
-   DOLNY PANEL
-========================================= */
+    position: fixed;
 
-#bottom{
-    position:fixed;
-    z-index:20;
+    z-index: 20;
 
-    left:12px;
-    right:12px;
+    left: 12px;
 
-    bottom:max(
-        12px,
-        env(safe-area-inset-bottom)
-    );
+    right: 12px;
 
-    padding:10px;
+    bottom: max(12px, env(safe-area-inset-bottom));
 
-    border-radius:18px;
+    padding: 10px;
 
-    background:
-        rgba(8,12,9,.92);
+    border-radius: 18px;
 
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
+    background: rgba(8,12,9,.92);
+
+    backdrop-filter: blur(12px);
+
+    -webkit-backdrop-filter: blur(12px);
+
 }
 
-.buttons{
-    display:flex;
+.buttons {
 
-    gap:8px;
+    display: flex;
+
+    gap: 8px;
+
 }
 
-button{
-    flex:1;
+button {
 
-    border:0;
+    flex: 1;
 
-    border-radius:14px;
+    border: 0;
 
-    min-height:52px;
+    border-radius: 14px;
 
-    padding:10px 7px;
+    min-height: 52px;
 
-    font-size:15px;
+    padding: 10px 7px;
 
-    font-weight:800;
+    font-size: 15px;
+
+    font-weight: 800;
+
 }
 
-#park{
-    background:#31d158;
+#park {
 
-    color:#001a07;
+    background: #31d158;
+
+    color: #001a07;
+
 }
 
-#back{
-    background:#ff9f0a;
+#back {
 
-    color:#1d0d00;
+    background: #ff9f0a;
+
+    color: #1d0d00;
+
 }
 
-#reset{
-    background:#ff453a;
+#reset {
 
-    color:white;
+    background: #ff453a;
+
+    color: white;
+
 }
 
-.badge{
-    display:inline-block;
+.badge {
 
-    padding:2px 7px;
+    display: inline-block;
 
-    margin-left:5px;
+    padding: 2px 7px;
 
-    border-radius:10px;
+    margin-left: 5px;
 
-    background:
-        rgba(255,255,255,.08);
+    border-radius: 10px;
+
+    background: rgba(255,255,255,.08);
+
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div id="scene">
-    <canvas id="radar"></canvas>
-</div>
 
+    <canvas id="radar"></canvas>
+
+</div>
 
 <div id="top">
 
     <div id="status">
+
         Czekam na GPS…
+
     </div>
 
     <div id="distance">
+
         —
+
     </div>
 
-    <div id="sensor">
-        Kierunek telefonu: —
+    <div id="bearingText">
+
+        Kierunek do hulajnogi: —
+
     </div>
 
     <div id="hint">
+
         Przy hulajnodze naciśnij ZAPARKOWAŁEM.
+
     </div>
 
 </div>
 
+<div id="north">
 
-<div id="fixedArrow">
+    <div id="northArrow">
 
-    <div class="arrow">
         ↑
+
     </div>
 
-    <div class="label">
-        PRZÓD
+    <div id="northText">
+
+        N
+
     </div>
 
 </div>
-
 
 <div id="bottom">
 
     <div class="buttons">
 
         <button id="park">
+
             🛴 ZAPARKOWAŁEM
+
         </button>
 
         <button id="back">
+
             ↩️ WRÓĆ
+
         </button>
 
         <button id="reset">
+
             RESET
+
         </button>
 
     </div>
 
 </div>
 
-
 <script>
 
 "use strict";
 
-const BUILD =
-    "v8-fixed-arrow";
+const BUILD = "v9-north-up";
 
+const $ = id => document.getElementById(id);
 
-const $ =
-    id =>
-    document.getElementById(id);
+const canvas = $("radar");
 
+const ctx = canvas.getContext("2d");
 
-const canvas =
-    $("radar");
+let current = null;
 
+let scooter = null;
 
-const ctx =
-    canvas.getContext("2d");
-
+let returnMode = false;
 
 /* =========================================
-   STAN
-========================================= */
 
-let current =
-    null;
-
-
-let scooter =
-    null;
-
-
-let returnMode =
-    false;
-
-
-let phoneHeading =
-    null;
-
-
-let compassStarted =
-    false;
-
-
-let lastAlpha =
-    null;
-
-
-let lastWebkit =
-    null;
-
-
-let lastSensorTime =
-    0;
-
-
-/* =========================================
    WCZYTANIE HULAJNOGI
+
 ========================================= */
 
-try{
+try {
 
-    const saved =
+    const stored =
 
-        localStorage.getItem(
-            "scooterPosition"
-        )
+        localStorage.getItem("scooterPosition") ||
 
-        ||
+        localStorage.getItem("carPosition");
 
-        localStorage.getItem(
-            "carPosition"
-        );
+    if (stored) {
 
+        const data = JSON.parse(stored);
 
-    if(saved){
+        const lat = Number(data.lat);
 
-        const p =
-            JSON.parse(saved);
+        const lng = Number(data.lng);
 
+        if (
 
-        const lat =
-            Number(p.lat);
+            Number.isFinite(lat) &&
 
-
-        const lng =
-            Number(p.lng);
-
-
-        if(
-            Number.isFinite(lat)
-            &&
             Number.isFinite(lng)
-        ){
+
+        ) {
 
             scooter = {
-                lat,
-                lng
+
+                lat: lat,
+
+                lng: lng
+
             };
+
         }
+
     }
 
-}catch(e){}
+} catch (error) {
 
+    scooter = null;
 
-if(scooter){
-
-    $("park")
-        .style
-        .display =
-        "none";
 }
 
+if (scooter) {
+
+    $("park").style.display = "none";
+
+}
 
 /* =========================================
+
    CANVAS
+
 ========================================= */
 
-function resizeCanvas(){
+function resizeCanvas() {
 
     const dpr =
+
         Math.max(
+
             1,
+
             window.devicePixelRatio || 1
+
         );
 
-
     canvas.width =
+
         innerWidth * dpr;
 
-
     canvas.height =
+
         innerHeight * dpr;
 
-
     canvas.style.width =
+
         innerWidth + "px";
 
-
     canvas.style.height =
+
         innerHeight + "px";
 
-
     ctx.setTransform(
+
         dpr,
+
         0,
+
         0,
+
         dpr,
+
         0,
+
         0
+
     );
 
-
     drawRadar();
+
 }
 
-
 window.addEventListener(
-    "resize",
-    resizeCanvas
-);
 
+    "resize",
+
+    resizeCanvas
+
+);
 
 resizeCanvas();
 
-
 /* =========================================
-   KĄTY
-========================================= */
 
-function normalize360(angle){
-
-    return (
-
-        (
-
-            angle % 360
-
-        )
-
-        +
-
-        360
-
-    ) % 360;
-}
-
-
-function normalize180(angle){
-
-    return (
-
-        (
-
-            (
-
-                angle + 180
-
-            )
-
-            % 360
-
-            +
-
-            360
-
-        )
-
-        % 360
-
-    )
-
-    - 180;
-}
-
-
-/* =========================================
    ODLEGŁOŚĆ
+
+   TU JEST POPRAWIONY BŁĄD NaN.
+
 ========================================= */
 
 function distanceM(
+
     lat1,
+
     lon1,
+
     lat2,
+
     lon2
-){
 
-    lat1 =
-        Number(lat1);
+) {
 
-    lon1 =
-        Number(lon1);
+    lat1 = Number(lat1);
 
-    lat2 =
-        Number(lat2);
+    lon1 = Number(lon1);
 
-    lon2 =
-        Number(lon2);
+    lat2 = Number(lat2);
 
+    lon2 = Number(lon2);
 
-    if(
-        !Number.isFinite(lat1)
-        ||
-        !Number.isFinite(lon1)
-        ||
-        !Number.isFinite(lat2)
-        ||
+    if (
+
+        !Number.isFinite(lat1) ||
+
+        !Number.isFinite(lon1) ||
+
+        !Number.isFinite(lat2) ||
+
         !Number.isFinite(lon2)
-    ){
+
+    ) {
 
         return 0;
+
     }
 
-
-    const R =
-        6371000;
-
+    const R = 6371000;
 
     const p1 =
-        lat1 *
-        Math.PI /
-        180;
 
+        lat1 * Math.PI / 180;
 
     const p2 =
-        lat2 *
-        Math.PI /
-        180;
 
+        lat2 * Math.PI / 180;
 
     const dp =
-        (
-            lat2 -
-            lat1
-        )
 
-        *
+        (lat2 - lat1) *
 
-        Math.PI /
-        180;
-
+        Math.PI / 180;
 
     const dl =
-        (
-            lon2 -
-            lon1
-        )
 
-        *
+        (lon2 - lon1) *
 
-        Math.PI /
-        180;
-
+        Math.PI / 180;
 
     const a =
 
-        Math.sin(dp/2) ** 2
-
-        +
+        Math.sin(dp / 2) ** 2 +
 
         Math.cos(p1) *
+
         Math.cos(p2) *
 
-        Math.sin(dl/2) ** 2;
+        Math.sin(dl / 2) ** 2;
 
+    return R * 2 * Math.atan2(
 
-    return
+        Math.sqrt(a),
 
-        R *
+        Math.sqrt(1 - a)
 
-        2 *
+    );
 
-        Math.atan2(
-
-            Math.sqrt(a),
-
-            Math.sqrt(
-                1-a
-            )
-
-        );
 }
 
-
 /* =========================================
+
    KIERUNEK GPS DO HULAJNOGI
+
+   0°   = północ
+
+   90°  = wschód
+
+   180° = południe
+
+   270° = zachód
+
 ========================================= */
 
 function bearingDeg(
+
     lat1,
+
     lon1,
+
     lat2,
+
     lon2
-){
+
+) {
+
+    lat1 = Number(lat1);
+
+    lon1 = Number(lon1);
+
+    lat2 = Number(lat2);
+
+    lon2 = Number(lon2);
+
+    if (
+
+        !Number.isFinite(lat1) ||
+
+        !Number.isFinite(lon1) ||
+
+        !Number.isFinite(lat2) ||
+
+        !Number.isFinite(lon2)
+
+    ) {
+
+        return 0;
+
+    }
 
     const p1 =
-        Number(lat1) *
-        Math.PI /
-        180;
 
+        lat1 * Math.PI / 180;
 
     const p2 =
-        Number(lat2) *
-        Math.PI /
-        180;
 
+        lat2 * Math.PI / 180;
 
-    const dl =
+    const dLon =
 
-        (
+        (lon2 - lon1) *
 
-            Number(lon2)
-
-            -
-
-            Number(lon1)
-
-        )
-
-        *
-
-        Math.PI /
-        180;
-
+        Math.PI / 180;
 
     const y =
 
-        Math.sin(dl) *
+        Math.sin(dLon) *
 
         Math.cos(p2);
-
 
     const x =
 
         Math.cos(p1) *
-        Math.sin(p2)
 
-        -
+        Math.sin(p2) -
 
         Math.sin(p1) *
+
         Math.cos(p2) *
-        Math.cos(dl);
 
+        Math.cos(dLon);
 
-    return normalize360(
+    const bearing =
 
-        Math.atan2(
-            y,
-            x
-        )
+        Math.atan2(y, x) *
 
-        *
+        180 / Math.PI;
 
-        180 /
-        Math.PI
+    return (bearing + 360) % 360;
 
-    );
 }
 
+/* =========================================
+
+   NAZWA KIERUNKU
+
+========================================= */
+
+function bearingName(angle) {
+
+    const names = [
+
+        "N",
+
+        "NE",
+
+        "E",
+
+        "SE",
+
+        "S",
+
+        "SW",
+
+        "W",
+
+        "NW"
+
+    ];
+
+    const index =
+
+        Math.round(
+
+            angle / 45
+
+        ) % 8;
+
+    return names[index];
+
+}
 
 /* =========================================
+
    DŁUGOŚĆ LINII
+
+   Im dalej hulajnoga,
+
+   tym linia dłuższa.
+
 ========================================= */
 
 function distanceToRadius(
+
     distance,
+
     maxRadius
-){
+
+) {
 
     distance =
+
         Number(distance);
 
+    if (
 
-    if(
-        !Number.isFinite(distance)
-        ||
+        !Number.isFinite(distance) ||
+
         distance <= 0
-    ){
 
-        return 5;
+    ) {
+
+        return 4;
+
     }
 
+    /*
 
-    const maxDistance =
+    Pełny radar około 2 km.
+
+    Skala logarytmiczna powoduje,
+
+    że dobrze widać także 20–200 m.
+
+    */
+
+    const referenceDistance =
+
         2000;
-
 
     let ratio =
 
         Math.log(
-            1 +
-            distance/10
+
+            1 + distance / 10
+
         )
 
         /
 
         Math.log(
-            1 +
-            maxDistance/10
-        );
 
+            1 + referenceDistance / 10
+
+        );
 
     ratio =
+
         Math.max(
+
             0,
+
             Math.min(
+
                 1,
+
                 ratio
+
             )
+
         );
 
-
-    return (
-
-        10
-
-        +
+    return 7 +
 
         ratio *
 
         (
-            maxRadius -
-            10
-        )
 
-    );
-}
-
-
-/* =========================================
-   KOMPAS
-
-   STRZAŁKA SIĘ NIE OBRACA.
-
-   Obracamy wyłącznie pozycję
-   hulajnogi na radarze.
-========================================= */
-
-function orientationHandler(event){
-
-    const now =
-        Date.now();
-
-
-    const alpha =
-
-        Number.isFinite(
-            event.alpha
-        )
-
-        ?
-
-        event.alpha
-
-        :
-
-        null;
-
-
-    const webkit =
-
-        Number.isFinite(
-            event.webkitCompassHeading
-        )
-
-        ?
-
-        normalize360(
-            event.webkitCompassHeading
-        )
-
-        :
-
-        null;
-
-
-    /*
-    Pierwszy pomiar.
-    */
-
-    if(
-        phoneHeading === null
-    ){
-
-        if(
-            webkit !== null
-        ){
-
-            phoneHeading =
-                webkit;
-        }
-
-        else if(
-            alpha !== null
-        ){
-
-            phoneHeading =
-                normalize360(
-                    360 -
-                    alpha
-                );
-        }
-
-
-        lastAlpha =
-            alpha;
-
-
-        lastWebkit =
-            webkit;
-
-
-        lastSensorTime =
-            now;
-
-
-        updateUI();
-
-        drawRadar();
-
-        return;
-    }
-
-
-    /*
-    Do płynnego obracania radaru
-    używamy zmian alpha.
-    */
-
-    if(
-        alpha !== null
-        &&
-        lastAlpha !== null
-    ){
-
-        const delta =
-
-            normalize180(
-
-                alpha
-
-                -
-
-                lastAlpha
-
-            );
-
-
-        /*
-        Filtr absurdalnych skoków.
-        */
-
-        if(
-            Math.abs(delta)
-            <
-            90
-        ){
-
-            phoneHeading =
-
-                normalize360(
-
-                    phoneHeading
-
-                    -
-
-                    delta
-
-                );
-        }
-    }
-
-
-    /*
-    webkitCompassHeading
-    powoli koryguje dryf.
-    */
-
-    if(
-        webkit !== null
-    ){
-
-        if(
-            lastWebkit === null
-        ){
-
-            phoneHeading =
-                webkit;
-        }
-
-        else{
-
-            const correction =
-
-                normalize180(
-
-                    webkit
-
-                    -
-
-                    phoneHeading
-
-                );
-
-
-            /*
-            Delikatna korekcja.
-            */
-
-            phoneHeading =
-
-                normalize360(
-
-                    phoneHeading
-
-                    +
-
-                    correction *
-                    0.08
-
-                );
-        }
-
-
-        lastWebkit =
-            webkit;
-    }
-
-
-    lastAlpha =
-        alpha;
-
-
-    lastSensorTime =
-        now;
-
-
-    /*
-    TUTAJ porusza się hulajnoga,
-    nie strzałka.
-    */
-
-    updateUI();
-
-    drawRadar();
-}
-
-
-/* =========================================
-   START KOMPASU
-========================================= */
-
-async function startCompass(){
-
-    if(compassStarted){
-
-        return true;
-    }
-
-
-    try{
-
-        if(
-
-            typeof
-            DeviceOrientationEvent
-
-            !==
-
-            "undefined"
-
-            &&
-
-            typeof
-            DeviceOrientationEvent
-                .requestPermission
-
-            ===
-
-            "function"
-
-        ){
-
-            const permission =
-
-                await
-
-                DeviceOrientationEvent
-                    .requestPermission();
-
-
-            if(
-                permission !==
-                "granted"
-            ){
-
-                $("hint")
-                    .textContent =
-
-                    "Brak zgody na ruch i orientację.";
-
-
-                return false;
-            }
-        }
-
-
-        window.addEventListener(
-
-            "deviceorientation",
-
-            orientationHandler,
-
-            true
+            maxRadius - 7
 
         );
 
-
-        compassStarted =
-            true;
-
-
-        return true;
-    }
-
-    catch(error){
-
-        $("hint")
-            .textContent =
-
-            "Nie udało się uruchomić kompasu.";
-
-
-        return false;
-    }
 }
 
-
 /* =========================================
+
    GPS
+
 ========================================= */
 
-function gpsUpdate(pos){
+function gpsUpdate(position) {
 
     const lat =
-        Number(
-            pos.coords.latitude
-        );
 
+        Number(
+
+            position.coords.latitude
+
+        );
 
     const lng =
-        Number(
-            pos.coords.longitude
-        );
 
+        Number(
+
+            position.coords.longitude
+
+        );
 
     const accuracy =
+
         Number(
-            pos.coords.accuracy
+
+            position.coords.accuracy
+
         );
 
+    if (
 
-    if(
-        !Number.isFinite(lat)
-        ||
+        !Number.isFinite(lat) ||
+
         !Number.isFinite(lng)
-    ){
+
+    ) {
 
         return;
-    }
 
+    }
 
     current = {
 
-        lat,
+        lat: lat,
 
-        lng,
+        lng: lng,
 
         accuracy:
 
-            Number.isFinite(
-                accuracy
-            )
+            Number.isFinite(accuracy)
 
             ?
 
@@ -1147,31 +869,28 @@ function gpsUpdate(pos){
             :
 
             0
-    };
 
+    };
 
     updateUI();
 
     drawRadar();
+
 }
 
+function gpsError(error) {
 
-function gpsError(error){
+    $("status").textContent =
 
-    $("status")
-        .textContent =
-
-        "Błąd GPS: "
-
-        +
+        "Błąd GPS: " +
 
         error.message;
+
 }
 
+if ("geolocation" in navigator) {
 
-navigator
-    .geolocation
-    .watchPosition(
+    navigator.geolocation.watchPosition(
 
         gpsUpdate,
 
@@ -1179,466 +898,473 @@ navigator
 
         {
 
-            enableHighAccuracy:
-                true,
+            enableHighAccuracy: true,
 
-            maximumAge:
-                0,
+            maximumAge: 0,
 
-            timeout:
-                15000
+            timeout: 15000
 
         }
 
     );
 
+} else {
+
+    $("status").textContent =
+
+        "Brak GPS.";
+
+}
 
 /* =========================================
-   UI
+
+   INTERFEJS
+
 ========================================= */
 
-function updateUI(){
+function updateUI() {
 
-    if(!current){
+    if (!current) {
 
-        $("status")
-            .textContent =
+        $("status").textContent =
+
             "Czekam na GPS…";
 
         return;
+
     }
 
-
-    const sensorLive =
-
-        phoneHeading !== null
-
-        &&
-
-        (
-            Date.now()
-
-            -
-
-            lastSensorTime
-
-        )
-
-        <
-        1500;
-
-
-    $("status")
-        .innerHTML =
+    $("status").innerHTML =
 
         `GPS ±${Math.round(
+
             current.accuracy
+
         )} m`
 
         +
 
-        (
+        ` <span class="badge">${BUILD}</span>`;
 
-            sensorLive
+    if (
 
-            ?
+        scooter &&
 
-            ` <span class="badge">
-                kompas LIVE
-            </span>`
-
-            :
-
-            ` <span class="badge">
-                kompas —
-            </span>`
-
-        );
-
-
-    if(
-        phoneHeading !== null
-    ){
-
-        $("sensor")
-            .textContent =
-
-            "Kierunek telefonu: "
-
-            +
-
-            Math.round(
-                phoneHeading
-            )
-
-            +
-
-            "° · "
-
-            +
-
-            BUILD;
-    }
-
-    else{
-
-        $("sensor")
-            .textContent =
-
-            "Kierunek telefonu: — · "
-
-            +
-
-            BUILD;
-    }
-
-
-    if(
-        scooter
-        &&
         returnMode
-    ){
 
-        const d =
+    ) {
+
+        const distance =
 
             distanceM(
 
                 current.lat,
+
                 current.lng,
 
                 scooter.lat,
+
                 scooter.lng
 
             );
 
-
-        $("distance")
-            .textContent =
-
-            d >= 1000
-
-            ?
-
-            "🛴 "
-
-            +
-
-            (d/1000)
-                .toFixed(2)
-
-            +
-
-            " km"
-
-            :
-
-            "🛴 "
-
-            +
-
-            Math.round(d)
-
-            +
-
-            " m";
-
-
-        $("hint")
-            .textContent =
-
-            "Strzałka jest nieruchoma. Hulajnoga obraca się na kompasie.";
-
-    }
-
-    else if(scooter){
-
-        $("distance")
-            .textContent =
-
-            "🛴 HULAJNOGA ZAPISANA";
-
-
-        $("hint")
-            .textContent =
-
-            "Gdy chcesz wracać, naciśnij WRÓĆ.";
-    }
-
-    else{
-
-        $("distance")
-            .textContent =
-            "—";
-
-
-        $("hint")
-            .textContent =
-
-            "Przy hulajnodze naciśnij ZAPARKOWAŁEM.";
-    }
-
-
-    $("fixedArrow")
-        .style
-        .display =
-
-        returnMode
-        &&
-        scooter
-
-        ?
-
-        "block"
-
-        :
-
-        "none";
-}
-
-
-/* =========================================
-   RADAR
-========================================= */
-
-function drawRadar(){
-
-    const w =
-        innerWidth;
-
-
-    const h =
-        innerHeight;
-
-
-    const cx =
-        w / 2;
-
-
-    const cy =
-        h / 2;
-
-
-    const maxRadius =
-
-        Math.min(
-            w,
-            h
-        )
-
-        *
-
-        0.37;
-
-
-    ctx.clearRect(
-        0,
-        0,
-        w,
-        h
-    );
-
-
-    ctx.save();
-
-
-    /* ===============================
-       OKRĘGI
-    =============================== */
-
-    ctx.strokeStyle =
-        "rgba(255,255,255,.13)";
-
-
-    ctx.lineWidth =
-        1;
-
-
-    [
-        .25,
-        .5,
-        .75,
-        1
-    ]
-    .forEach(
-        scale => {
-
-            ctx.beginPath();
-
-            ctx.arc(
-
-                cx,
-                cy,
-
-                maxRadius *
-                scale,
-
-                0,
-
-                Math.PI*2
-
-            );
-
-            ctx.stroke();
-        }
-    );
-
-
-    /* ===============================
-       KRZYŻ
-    =============================== */
-
-    ctx.beginPath();
-
-
-    ctx.moveTo(
-        cx-maxRadius,
-        cy
-    );
-
-
-    ctx.lineTo(
-        cx+maxRadius,
-        cy
-    );
-
-
-    ctx.moveTo(
-        cx,
-        cy-maxRadius
-    );
-
-
-    ctx.lineTo(
-        cx,
-        cy+maxRadius
-    );
-
-
-    ctx.stroke();
-
-
-    /* ===============================
-       TWOJA POZYCJA
-    =============================== */
-
-    ctx.fillStyle =
-        "#0a84ff";
-
-
-    ctx.beginPath();
-
-
-    ctx.arc(
-        cx,
-        cy,
-        9,
-        0,
-        Math.PI*2
-    );
-
-
-    ctx.fill();
-
-
-    ctx.strokeStyle =
-        "white";
-
-
-    ctx.lineWidth =
-        3;
-
-
-    ctx.stroke();
-
-
-    /* ===============================
-       HULAJNOGA
-    =============================== */
-
-    if(
-        returnMode
-        &&
-        current
-        &&
-        scooter
-    ){
-
-        const d =
-
-            distanceM(
-
-                current.lat,
-                current.lng,
-
-                scooter.lat,
-                scooter.lng
-
-            );
-
-
-        const targetBearing =
+        const bearing =
 
             bearingDeg(
 
                 current.lat,
+
                 current.lng,
 
                 scooter.lat,
+
                 scooter.lng
 
             );
 
+        if (distance >= 1000) {
 
-        /*
-        TO JEST TERAZ KLUCZ:
+            $("distance").textContent =
 
-        STRZAŁKA NIE RUSZA SIĘ.
+                "🛴 " +
 
-        Obliczamy pozycję hulajnogi
-        względem kierunku telefonu.
-        */
+                (distance / 1000).toFixed(2) +
 
-        let relativeBearing;
+                " km";
 
+        } else {
 
-        if(
-            phoneHeading !== null
-        ){
+            $("distance").textContent =
 
-            relativeBearing =
+                "🛴 " +
 
-                normalize180(
+                Math.round(distance) +
 
-                    targetBearing
+                " m";
 
-                    -
-
-                    phoneHeading
-
-                );
         }
 
-        else{
+        $("bearingText").textContent =
 
-            relativeBearing =
-                targetBearing;
-        }
+            "Hulajnoga: " +
 
+            bearingName(bearing) +
+
+            " · " +
+
+            Math.round(bearing) +
+
+            "°";
+
+        $("hint").textContent =
+
+            "Północ jest zawsze u góry. Punkt hulajnogi zmienia pozycję według GPS.";
+
+        $("north").style.display =
+
+            "block";
+
+    }
+
+    else if (scooter) {
+
+        $("distance").textContent =
+
+            "🛴 HULAJNOGA ZAPISANA";
+
+        $("bearingText").textContent =
+
+            "Kierunek do hulajnogi: —";
+
+        $("hint").textContent =
+
+            "Gdy chcesz wracać, naciśnij WRÓĆ.";
+
+        $("north").style.display =
+
+            "none";
+
+    }
+
+    else {
+
+        $("distance").textContent =
+
+            "—";
+
+        $("bearingText").textContent =
+
+            "Kierunek do hulajnogi: —";
+
+        $("hint").textContent =
+
+            "Przy hulajnodze naciśnij ZAPARKOWAŁEM.";
+
+        $("north").style.display =
+
+            "none";
+
+    }
+
+}
+
+/* =========================================
+
+   RADAR
+
+   N = ZAWSZE GÓRA.
+
+   Nie używamy kompasu telefonu.
+
+========================================= */
+
+function drawRadar() {
+
+    const width =
+
+        innerWidth;
+
+    const height =
+
+        innerHeight;
+
+    const centerX =
+
+        width / 2;
+
+    const centerY =
+
+        height / 2;
+
+    const maxRadius =
+
+        Math.min(
+
+            width,
+
+            height
+
+        ) * 0.37;
+
+    ctx.clearRect(
+
+        0,
+
+        0,
+
+        width,
+
+        height
+
+    );
+
+    ctx.save();
+
+    /* =====================================
+
+       OKRĘGI
+
+    ===================================== */
+
+    ctx.strokeStyle =
+
+        "rgba(255,255,255,.13)";
+
+    ctx.lineWidth =
+
+        1;
+
+    [
+
+        0.25,
+
+        0.5,
+
+        0.75,
+
+        1
+
+    ].forEach(scale => {
+
+        ctx.beginPath();
+
+        ctx.arc(
+
+            centerX,
+
+            centerY,
+
+            maxRadius * scale,
+
+            0,
+
+            Math.PI * 2
+
+        );
+
+        ctx.stroke();
+
+    });
+
+    /* =====================================
+
+       LINIE N/S E/W
+
+    ===================================== */
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+
+        centerX - maxRadius,
+
+        centerY
+
+    );
+
+    ctx.lineTo(
+
+        centerX + maxRadius,
+
+        centerY
+
+    );
+
+    ctx.moveTo(
+
+        centerX,
+
+        centerY - maxRadius
+
+    );
+
+    ctx.lineTo(
+
+        centerX,
+
+        centerY + maxRadius
+
+    );
+
+    ctx.stroke();
+
+    /* =====================================
+
+       OZNACZENIA KIERUNKÓW
+
+    ===================================== */
+
+    ctx.fillStyle =
+
+        "rgba(255,255,255,.55)";
+
+    ctx.font =
+
+        "700 13px -apple-system";
+
+    ctx.textAlign =
+
+        "center";
+
+    ctx.fillText(
+
+        "N",
+
+        centerX,
+
+        centerY - maxRadius + 20
+
+    );
+
+    ctx.fillText(
+
+        "S",
+
+        centerX,
+
+        centerY + maxRadius - 10
+
+    );
+
+    ctx.fillText(
+
+        "W",
+
+        centerX - maxRadius + 14,
+
+        centerY + 4
+
+    );
+
+    ctx.fillText(
+
+        "E",
+
+        centerX + maxRadius - 14,
+
+        centerY + 4
+
+    );
+
+    /* =====================================
+
+       TY
+
+    ===================================== */
+
+    ctx.fillStyle =
+
+        "#0a84ff";
+
+    ctx.beginPath();
+
+    ctx.arc(
+
+        centerX,
+
+        centerY,
+
+        9,
+
+        0,
+
+        Math.PI * 2
+
+    );
+
+    ctx.fill();
+
+    ctx.strokeStyle =
+
+        "white";
+
+    ctx.lineWidth =
+
+        3;
+
+    ctx.stroke();
+
+    /* =====================================
+
+       HULAJNOGA
+
+    ===================================== */
+
+    if (
+
+        returnMode &&
+
+        current &&
+
+        scooter
+
+    ) {
+
+        const distance =
+
+            distanceM(
+
+                current.lat,
+
+                current.lng,
+
+                scooter.lat,
+
+                scooter.lng
+
+            );
+
+        const bearing =
+
+            bearingDeg(
+
+                current.lat,
+
+                current.lng,
+
+                scooter.lat,
+
+                scooter.lng
+
+            );
 
         /*
-        0° = GÓRA
-        90° = PRAWO
-        180° = DÓŁ
-        -90° = LEWO
+
+        Północ = góra canvas.
+
+        Canvas:
+
+        0 rad = prawo.
+
+        Dlatego odejmujemy 90°.
+
         */
 
         const angle =
 
             (
 
-                relativeBearing
-
-                -
+                bearing -
 
                 90
 
@@ -1650,141 +1376,121 @@ function drawRadar(){
 
             180;
 
-
-        /*
-        Im dalej hulajnoga,
-        tym dłuższa linia.
-        */
-
         const lineLength =
 
             distanceToRadius(
 
-                d,
+                distance,
 
-                maxRadius *
-                .94
+                maxRadius * 0.93
 
             );
 
-
         const scooterX =
 
-            cx
+            centerX +
 
-            +
-
-            Math.cos(angle)
-
-            *
+            Math.cos(angle) *
 
             lineLength;
-
 
         const scooterY =
 
-            cy
+            centerY +
 
-            +
-
-            Math.sin(angle)
-
-            *
+            Math.sin(angle) *
 
             lineLength;
 
+        /* =================================
 
-        /* ===============================
-           CIĄGŁA LINIA
-        =============================== */
+           CIĄGŁA CZERWONA LINIA
+
+        ================================= */
 
         ctx.setLineDash([]);
 
-
         ctx.strokeStyle =
+
             "#ff453a";
 
-
         ctx.lineWidth =
+
             7;
 
-
         ctx.lineCap =
-            "round";
 
+            "round";
 
         ctx.beginPath();
 
-
         ctx.moveTo(
-            cx,
-            cy
-        );
 
+            centerX,
+
+            centerY
+
+        );
 
         ctx.lineTo(
-            scooterX,
-            scooterY
-        );
 
+            scooterX,
+
+            scooterY
+
+        );
 
         ctx.stroke();
 
+        /* =================================
 
-        /* ===============================
-           PUNKT HULAJNOGI
-        =============================== */
+           HULAJNOGA
+
+        ================================= */
 
         ctx.fillStyle =
+
             "#ff9f0a";
 
-
         ctx.beginPath();
-
 
         ctx.arc(
 
             scooterX,
+
             scooterY,
 
             15,
 
             0,
 
-            Math.PI*2
+            Math.PI * 2
 
         );
 
-
         ctx.fill();
 
-
         ctx.strokeStyle =
-            "#fff";
 
+            "white";
 
         ctx.lineWidth =
-            2;
 
+            2;
 
         ctx.stroke();
 
-
-        /* ===============================
-           IKONA
-        =============================== */
-
         ctx.font =
+
             "700 20px -apple-system";
 
-
         ctx.textAlign =
+
             "center";
 
-
         ctx.fillStyle =
-            "#fff";
 
+            "white";
 
         ctx.fillText(
 
@@ -1792,287 +1498,273 @@ function drawRadar(){
 
             scooterX,
 
-            scooterY - 23
+            scooterY - 24
 
         );
 
+        /* =================================
 
-        /* ===============================
-           ODLEGŁOŚĆ
-        =============================== */
+           DYSTANS NA LINII
 
-        if(
-            lineLength >
-            75
-        ){
+        ================================= */
+
+        if (lineLength > 70) {
 
             const textX =
 
-                cx
+                centerX +
 
-                +
-
-                Math.cos(angle)
-
-                *
+                Math.cos(angle) *
 
                 lineLength *
-                .55;
 
+                0.55;
 
             const textY =
 
-                cy
+                centerY +
 
-                +
-
-                Math.sin(angle)
-
-                *
+                Math.sin(angle) *
 
                 lineLength *
-                .55;
 
+                0.55;
 
             ctx.font =
+
                 "700 13px -apple-system";
 
-
             ctx.fillStyle =
-                "#fff";
 
+                "white";
 
-            ctx.fillText(
+            const distanceText =
 
-                d >= 1000
+                distance >= 1000
 
                 ?
 
-                (d/1000)
-                    .toFixed(2)
-
-                +
+                (distance / 1000).toFixed(2) +
 
                 " km"
 
                 :
 
-                Math.round(d)
+                Math.round(distance) +
 
-                +
+                " m";
 
-                " m",
+            ctx.fillText(
+
+                distanceText,
 
                 textX,
 
                 textY - 10
 
             );
+
         }
+
     }
 
-
     ctx.restore();
+
 }
 
-
 /* =========================================
+
    ZAPARKOWAŁEM
+
 ========================================= */
 
-$("park")
-.addEventListener(
+$("park").addEventListener(
 
     "click",
 
     () => {
 
-        if(!current){
+        if (!current) {
 
             alert(
-                "Poczekaj na GPS."
+
+                "Poczekaj, aż GPS złapie pozycję."
+
             );
 
             return;
-        }
 
+        }
 
         scooter = {
 
             lat:
-                current.lat,
+
+                Number(
+
+                    current.lat
+
+                ),
 
             lng:
-                current.lng
-        };
 
+                Number(
+
+                    current.lng
+
+                )
+
+        };
 
         localStorage.setItem(
 
             "scooterPosition",
 
             JSON.stringify(
+
                 scooter
+
             )
 
         );
 
-
         localStorage.removeItem(
+
             "carPosition"
+
         );
 
-
         returnMode =
+
             false;
 
+        $("park").style.display =
 
-        $("park")
-            .style
-            .display =
             "none";
 
-
         updateUI();
 
         drawRadar();
+
     }
+
 );
 
-
 /* =========================================
+
    WRÓĆ
+
 ========================================= */
 
-$("back")
-.addEventListener(
+$("back").addEventListener(
 
     "click",
 
-    async () => {
+    () => {
 
-        if(!scooter){
+        if (!scooter) {
 
             alert(
+
                 "Najpierw zapisz hulajnogę."
+
             );
 
             return;
+
         }
 
-
-        if(!current){
+        if (!current) {
 
             alert(
+
                 "Czekam na GPS."
+
             );
 
             return;
-        }
 
+        }
 
         returnMode =
+
             true;
 
-
         updateUI();
 
-
-        await startCompass();
-
-
         drawRadar();
+
     }
+
 );
 
-
 /* =========================================
+
    RESET
+
 ========================================= */
 
-$("reset")
-.addEventListener(
+$("reset").addEventListener(
 
     "click",
 
     () => {
 
-        if(
+        if (
+
             !confirm(
+
                 "Usunąć zapisane miejsce hulajnogi?"
+
             )
-        ){
+
+        ) {
 
             return;
+
         }
 
-
         localStorage.removeItem(
+
             "scooterPosition"
-        );
 
+        );
 
         localStorage.removeItem(
-            "carPosition"
-        );
 
+            "carPosition"
+
+        );
 
         scooter =
+
             null;
 
-
         returnMode =
+
             false;
 
+        $("park").style.display =
 
-        $("park")
-            .style
-            .display =
             "";
-
 
         updateUI();
 
         drawRadar();
+
     }
-);
-
-
-/* =========================================
-   LIVE STATUS
-========================================= */
-
-setInterval(
-
-    () => {
-
-        if(returnMode){
-
-            updateUI();
-        }
-
-    },
-
-    500
 
 );
-
-
-/* =========================================
-   START
-========================================= */
 
 updateUI();
 
-
 /* =========================================
+
    OFFLINE
+
 ========================================= */
 
-if(
-    "serviceWorker"
-    in navigator
-){
+if ("serviceWorker" in navigator) {
 
     window.addEventListener(
 
@@ -2080,27 +1772,28 @@ if(
 
         () => {
 
-            navigator
-                .serviceWorker
-                .register(
+            navigator.serviceWorker.register(
 
-                    "./sw.js?v=8",
+                "./sw.js?v=9",
 
-                    {
-                        updateViaCache:
-                            "none"
-                    }
+                {
 
-                )
+                    updateViaCache:
 
-                .catch(
-                    () => {}
-                );
+                        "none"
+
+                }
+
+            ).catch(() => {});
+
         }
+
     );
+
 }
 
 </script>
 
 </body>
+
 </html>
